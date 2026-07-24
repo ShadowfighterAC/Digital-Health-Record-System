@@ -1,1 +1,1 @@
-# EHR_App
+# EHR App
