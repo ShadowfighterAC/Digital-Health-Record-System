@@ -21,7 +21,7 @@ class EHRApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
-      title: 'Electronic Health Record',
+      title: 'Digital Health Record System',
       debugShowCheckedModeBanner: false,
       theme: AppTheme.lightTheme,
       home: const SplashScreen(),

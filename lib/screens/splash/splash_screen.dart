@@ -47,7 +47,7 @@ class _SplashScreenState extends State<SplashScreen> {
             const SizedBox(height: 20),
 
             Text(
-              "Electronic Health Record",
+              "Digital Health Record System",
               style: Theme.of(context).textTheme.headlineMedium,
             ),
 
