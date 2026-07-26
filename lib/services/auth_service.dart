@@ -39,4 +39,34 @@ class AuthService {
       return e.toString();
     }
   }
+
+  Future<String?> loginUser({
+    required String email,
+    required String password,
+  }) async {
+    try {
+      await _auth.signInWithEmailAndPassword(
+        email: email.trim(),
+        password: password.trim(),
+      );
+
+      return null;
+    } on FirebaseAuthException catch (e) {
+      return e.message;
+    } catch (e) {
+      return e.toString();
+    }
+  }
+
+  Future<void> logout() async {
+    await _auth.signOut();
+  }
+
+  User? get currentUser => _auth.currentUser;
+  Future<String> getUserRole(String uid) async {
+  DocumentSnapshot doc =
+      await _firestore.collection('users').doc(uid).get();
+
+  return doc['role'];
+}
 }

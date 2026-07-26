@@ -3,6 +3,9 @@ import 'package:flutter/material.dart';
 import '../../widgets/custom_button.dart';
 import '../../widgets/custom_text_field.dart';
 import 'register_screen.dart';
+import '../../services/auth_service.dart';
+import '../../screens/patient/patient_dashboard.dart';
+import '../../screens/doctor/doctor_dashboard.dart';
 
 class LoginScreen extends StatefulWidget {
   const LoginScreen({super.key});
@@ -16,6 +19,9 @@ class _LoginScreenState extends State<LoginScreen> {
   final passwordController = TextEditingController();
 
   bool obscurePassword = true;
+  final AuthService _authService = AuthService();
+
+bool isLoading = false;
 
   @override
   void dispose() {
@@ -138,11 +144,67 @@ class _LoginScreenState extends State<LoginScreen> {
                       const SizedBox(height: 10),
 
                       CustomButton(
-                        text: "Login",
-                        onPressed: () {
-                          // TODO: Firebase Login
-                        },
-                      ),
+  text: "Login",
+  isLoading: isLoading,
+  onPressed: () async {
+    if (emailController.text.trim().isEmpty ||
+        passwordController.text.isEmpty) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text("Please enter email and password"),
+        ),
+      );
+      return;
+    }
+
+    setState(() {
+      isLoading = true;
+    });
+
+    String? error = await _authService.loginUser(
+      email: emailController.text,
+      password: passwordController.text,
+    );
+
+    if (error == null) {
+      final uid = _authService.currentUser!.uid;
+
+      final role = await _authService.getUserRole(uid);
+
+      if (!mounted) return;
+
+      if (role == "Patient") {
+        Navigator.pushReplacement(
+          context,
+          MaterialPageRoute(
+            builder: (_) => const PatientDashboard(),
+          ),
+        );
+      } else {
+        Navigator.pushReplacement(
+          context,
+          MaterialPageRoute(
+            builder: (_) => const DoctorDashboard(),
+          ),
+        );
+      }
+    } else {
+      if (!mounted) return;
+
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(error),
+        ),
+      );
+    }
+
+    if (mounted) {
+      setState(() {
+        isLoading = false;
+      });
+    }
+  },
+),
                     ],
                   ),
                 ),
