@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 
 import '../../widgets/custom_button.dart';
 import '../../widgets/custom_text_field.dart';
+import 'register_screen.dart';
 
 class LoginScreen extends StatefulWidget {
   const LoginScreen({super.key});
@@ -127,7 +128,9 @@ class _LoginScreenState extends State<LoginScreen> {
                       Align(
                         alignment: Alignment.centerRight,
                         child: TextButton(
-                          onPressed: () {},
+                          onPressed: () {
+                            // TODO: Forgot Password
+                          },
                           child: const Text("Forgot Password?"),
                         ),
                       ),
@@ -136,7 +139,9 @@ class _LoginScreenState extends State<LoginScreen> {
 
                       CustomButton(
                         text: "Login",
-                        onPressed: () {},
+                        onPressed: () {
+                          // TODO: Firebase Login
+                        },
                       ),
                     ],
                   ),
@@ -149,8 +154,16 @@ class _LoginScreenState extends State<LoginScreen> {
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
                   const Text("Don't have an account?"),
+
                   TextButton(
-                    onPressed: () {},
+                    onPressed: () {
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                          builder: (context) => const RegisterScreen(),
+                        ),
+                      );
+                    },
                     child: const Text("Register"),
                   ),
                 ],

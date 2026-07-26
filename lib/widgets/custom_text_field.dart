@@ -28,6 +28,33 @@ class CustomTextField extends StatelessWidget {
         hintText: hintText,
         prefixIcon: Icon(prefixIcon),
         suffixIcon: suffixIcon,
+
+        filled: true,
+        fillColor: Colors.white,
+
+        contentPadding: const EdgeInsets.symmetric(
+          horizontal: 18,
+          vertical: 18,
+        ),
+
+        border: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(14),
+        ),
+
+        enabledBorder: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(14),
+          borderSide: BorderSide(
+            color: Colors.grey.shade300,
+          ),
+        ),
+
+        focusedBorder: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(14),
+          borderSide: const BorderSide(
+            color: Colors.blue,
+            width: 2,
+          ),
+        ),
       ),
     );
   }
