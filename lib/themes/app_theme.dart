@@ -6,6 +6,7 @@ class AppTheme {
 
   static ThemeData lightTheme = ThemeData(
     useMaterial3: true,
+
     colorScheme: ColorScheme.fromSeed(
       seedColor: AppColors.primary,
       brightness: Brightness.light,
@@ -24,7 +25,11 @@ class AppTheme {
       style: ElevatedButton.styleFrom(
         backgroundColor: AppColors.primary,
         foregroundColor: Colors.white,
-        minimumSize: const Size(double.infinity, 50),
+
+        // IMPORTANT:
+        // DO NOT set minimumSize to double.infinity here.
+        // It breaks buttons inside Rows.
+
         shape: RoundedRectangleBorder(
           borderRadius: BorderRadius.circular(12),
         ),

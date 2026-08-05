@@ -19,8 +19,7 @@ class AddAppointmentScreen extends StatefulWidget {
       _AddAppointmentScreenState();
 }
 
-class _AddAppointmentScreenState
-    extends State<AddAppointmentScreen> {
+class _AddAppointmentScreenState extends State<AddAppointmentScreen> {
   final _formKey = GlobalKey<FormState>();
 
   final doctorController = TextEditingController();
@@ -31,7 +30,6 @@ class _AddAppointmentScreenState
   bool isLoading = false;
 
   DateTime appointmentDate = DateTime.now();
-
   TimeOfDay appointmentTime = TimeOfDay.now();
 
   @override
@@ -76,44 +74,60 @@ class _AddAppointmentScreenState
       isLoading = true;
     });
 
-    final appointment = AppointmentModel(
-      id: "",
-      patientId: widget.patientId,
-      doctorName: doctorController.text.trim(),
-      appointmentDate: appointmentDate,
-      appointmentTime: appointmentTime.format(context),
-      reason: reasonController.text.trim(),
-      status: "Scheduled",
-      createdAt: Timestamp.now(),
-    );
+    try {
+      final appointment = AppointmentModel(
+        id: "",
+        patientId: widget.patientId,
+        doctorName: doctorController.text.trim(),
+        appointmentDate: appointmentDate,
+        appointmentTime: appointmentTime.format(context),
+        reason: reasonController.text.trim(),
+        status: "Scheduled",
+        createdAt: Timestamp.now(),
+      );
 
-    await _service.addAppointment(appointment);
+      await _service.addAppointment(appointment);
 
-    if (!mounted) return;
+      if (!mounted) return;
 
-    ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(
-        content: Text("Appointment Created"),
-      ),
-    );
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text("Appointment Created Successfully"),
+        ),
+      );
 
-    Navigator.pop(context);
+      Navigator.pop(context);
+    } catch (e) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text(e.toString())),
+      );
+    }
+
+    if (mounted) {
+      setState(() {
+        isLoading = false;
+      });
+    }
   }
 
-  Widget buildField(
-    TextEditingController controller,
-    String label,
-  ) {
+  Widget buildField({
+    required TextEditingController controller,
+    required String label,
+  }) {
     return Padding(
       padding: const EdgeInsets.only(bottom: 18),
       child: TextFormField(
         controller: controller,
-        validator: (value) =>
-            value!.isEmpty ? "Required" : null,
+        validator: (value) {
+          if (value == null || value.trim().isEmpty) {
+            return "Please enter $label";
+          }
+          return null;
+        },
         decoration: InputDecoration(
           labelText: label,
           border: OutlineInputBorder(
-            borderRadius: BorderRadius.circular(14),
+            borderRadius: BorderRadius.circular(12),
           ),
         ),
       ),
@@ -125,14 +139,15 @@ class _AddAppointmentScreenState
     return Scaffold(
       appBar: AppBar(
         title: const Text("Schedule Appointment"),
+        centerTitle: true,
       ),
       body: SingleChildScrollView(
         padding: const EdgeInsets.all(20),
         child: Form(
           key: _formKey,
           child: Column(
+            crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
-
               Card(
                 color: Colors.blue.shade50,
                 child: ListTile(
@@ -147,39 +162,63 @@ class _AddAppointmentScreenState
               const SizedBox(height: 20),
 
               buildField(
-                doctorController,
-                "Doctor Name",
+                controller: doctorController,
+                label: "Doctor Name",
               ),
 
               buildField(
-                reasonController,
-                "Reason",
+                controller: reasonController,
+                label: "Reason",
               ),
 
               Card(
-                child: ListTile(
-                  leading: const Icon(Icons.calendar_today),
-                  title: Text(
-                    "${appointmentDate.day}/${appointmentDate.month}/${appointmentDate.year}",
-                  ),
-                  trailing: ElevatedButton(
-                    onPressed: chooseDate,
-                    child: const Text("Date"),
+                child: Padding(
+                  padding: const EdgeInsets.all(16),
+                  child: Row(
+                    children: [
+                      const Icon(Icons.calendar_today),
+
+                      const SizedBox(width: 15),
+
+                      Expanded(
+                        child: Text(
+                          "${appointmentDate.day}/${appointmentDate.month}/${appointmentDate.year}",
+                          style: const TextStyle(fontSize: 16),
+                        ),
+                      ),
+
+                      ElevatedButton(
+                        onPressed: chooseDate,
+                        child: const Text("Select"),
+                      ),
+                    ],
                   ),
                 ),
               ),
 
-              const SizedBox(height: 10),
+              const SizedBox(height: 15),
 
               Card(
-                child: ListTile(
-                  leading: const Icon(Icons.access_time),
-                  title: Text(
-                    appointmentTime.format(context),
-                  ),
-                  trailing: ElevatedButton(
-                    onPressed: chooseTime,
-                    child: const Text("Time"),
+                child: Padding(
+                  padding: const EdgeInsets.all(16),
+                  child: Row(
+                    children: [
+                      const Icon(Icons.access_time),
+
+                      const SizedBox(width: 15),
+
+                      Expanded(
+                        child: Text(
+                          appointmentTime.format(context),
+                          style: const TextStyle(fontSize: 16),
+                        ),
+                      ),
+
+                      ElevatedButton(
+                        onPressed: chooseTime,
+                        child: const Text("Select"),
+                      ),
+                    ],
                   ),
                 ),
               ),
@@ -187,17 +226,16 @@ class _AddAppointmentScreenState
               const SizedBox(height: 30),
 
               SizedBox(
-                width: double.infinity,
                 height: 50,
                 child: ElevatedButton(
-                  onPressed:
-                      isLoading ? null : saveAppointment,
+                  onPressed: isLoading ? null : saveAppointment,
                   child: isLoading
                       ? const CircularProgressIndicator(
                           color: Colors.white,
                         )
                       : const Text(
                           "Create Appointment",
+                          style: TextStyle(fontSize: 16),
                         ),
                 ),
               ),

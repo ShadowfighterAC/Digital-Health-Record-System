@@ -129,13 +129,22 @@ class DoctorDashboard extends StatelessWidget {
               onTap: () {},
             ),
 
-            dashboardButton(
-              context: context,
-              icon: Icons.bar_chart,
-              title: "Reports",
-              color: Colors.purple,
-              onTap: () {},
-            ),
+          dashboardButton(
+  context: context,
+  icon: Icons.calendar_month,
+  title: "Schedule Appointment",
+  color: Colors.orange,
+  onTap: () {
+    Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (_) => const PatientListScreen(
+          forAppointment: true,
+        ),
+      ),
+    );
+  },
+),
 
             const Spacer(),
 
