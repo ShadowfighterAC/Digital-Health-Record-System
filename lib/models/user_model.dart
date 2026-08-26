@@ -20,4 +20,13 @@ class UserModel {
       'createdAt': DateTime.now(),
     };
   }
+
+  factory UserModel.fromMap(Map<String, dynamic> map, String id) {
+    return UserModel(
+      uid: id,
+      name: map['name'] ?? '',
+      email: map['email'] ?? '',
+      role: map['role'] ?? '',
+    );
+  }
 }

@@ -21,13 +21,77 @@ class _LoginScreenState extends State<LoginScreen> {
   bool obscurePassword = true;
   final AuthService _authService = AuthService();
 
-bool isLoading = false;
+  bool isLoading = false;
 
   @override
   void dispose() {
     emailController.dispose();
     passwordController.dispose();
     super.dispose();
+  }
+
+  Future<void> _handleLogin() async {
+    final email = emailController.text.trim();
+    final password = passwordController.text.trim();
+
+    if (email.isEmpty || password.isEmpty) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text("Please enter email and password"),
+          backgroundColor: Colors.orange,
+        ),
+      );
+      return;
+    }
+
+    setState(() {
+      isLoading = true;
+    });
+
+    final String? error = await _authService.loginUser(
+      email: email,
+      password: password,
+    );
+
+    if (!mounted) return;
+
+    if (error == null) {
+      final uid = _authService.currentUser!.uid;
+      final role = await _authService.getUserRole(uid);
+
+      if (!mounted) return;
+
+      setState(() {
+        isLoading = false;
+      });
+
+      if (role == "Patient") {
+        Navigator.pushReplacement(
+          context,
+          MaterialPageRoute(
+            builder: (_) => const PatientDashboard(),
+          ),
+        );
+      } else {
+        Navigator.pushReplacement(
+          context,
+          MaterialPageRoute(
+            builder: (_) => const DoctorDashboard(),
+          ),
+        );
+      }
+    } else {
+      setState(() {
+        isLoading = false;
+      });
+
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(error),
+          backgroundColor: Colors.red,
+        ),
+      );
+    }
   }
 
   @override
@@ -131,80 +195,13 @@ bool isLoading = false;
                         ),
                       ),
 
-                      Align(
-                        alignment: Alignment.centerRight,
-                        child: TextButton(
-                          onPressed: () {
-                            // TODO: Forgot Password
-                          },
-                          child: const Text("Forgot Password?"),
-                        ),
-                      ),
-
-                      const SizedBox(height: 10),
+                      const SizedBox(height: 24),
 
                       CustomButton(
-  text: "Login",
-  isLoading: isLoading,
-  onPressed: () async {
-    if (emailController.text.trim().isEmpty ||
-        passwordController.text.isEmpty) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text("Please enter email and password"),
-        ),
-      );
-      return;
-    }
-
-    setState(() {
-      isLoading = true;
-    });
-
-    String? error = await _authService.loginUser(
-      email: emailController.text,
-      password: passwordController.text,
-    );
-
-    if (error == null) {
-      final uid = _authService.currentUser!.uid;
-
-      final role = await _authService.getUserRole(uid);
-
-      if (!mounted) return;
-
-      if (role == "Patient") {
-        Navigator.pushReplacement(
-          context,
-          MaterialPageRoute(
-            builder: (_) => const PatientDashboard(),
-          ),
-        );
-      } else {
-        Navigator.pushReplacement(
-          context,
-          MaterialPageRoute(
-            builder: (_) => const DoctorDashboard(),
-          ),
-        );
-      }
-    } else {
-      if (!mounted) return;
-
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text(error),
-        ),
-      );
-    }
-
-    if (mounted) {
-      setState(() {
-        isLoading = false;
-      });
-    }
-  },
-),
+                        text: "Login",
+                        isLoading: isLoading,
+                        onPressed: _handleLogin,
+                      ),
                     ],
                   ),
                 ),

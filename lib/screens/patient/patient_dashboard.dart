@@ -3,10 +3,12 @@ import 'package:flutter/material.dart';
 
 import '../../services/firestore_service.dart';
 import '../../widgets/info_card.dart';
-
 import '../auth/login_screen.dart';
 import 'patient_records.dart';
 import 'patient_appointments.dart';
+import 'patient_prescriptions.dart';
+import 'patient_lab_reports.dart';
+import 'patient_profile.dart';
 
 class PatientDashboard extends StatefulWidget {
   const PatientDashboard({super.key});
@@ -28,27 +30,79 @@ class _PatientDashboardState extends State<PatientDashboard> {
   }
 
   Future<void> loadUser() async {
-    final uid = FirebaseAuth.instance.currentUser!.uid;
-
-    final data = await _firestoreService.getUser(uid);
-
-    setState(() {
-      userData = data;
-      isLoading = false;
-    });
+    final uid = FirebaseAuth.instance.currentUser?.uid;
+    if (uid != null) {
+      final data = await _firestoreService.getUser(uid);
+      if (mounted) {
+        setState(() {
+          userData = data;
+          isLoading = false;
+        });
+      }
+    }
   }
 
   Future<void> logout() async {
-    await FirebaseAuth.instance.signOut();
-
-    if (!mounted) return;
-
-    Navigator.pushAndRemoveUntil(
-      context,
-      MaterialPageRoute(
-        builder: (_) => const LoginScreen(),
+    final confirm = await showDialog<bool>(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        title: const Text("Confirm Logout"),
+        content: const Text("Are you sure you want to sign out?"),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(ctx, false),
+            child: const Text("Cancel"),
+          ),
+          ElevatedButton(
+            style: ElevatedButton.styleFrom(backgroundColor: Colors.red),
+            onPressed: () => Navigator.pop(ctx, true),
+            child: const Text("Logout"),
+          ),
+        ],
       ),
-      (route) => false,
+    );
+
+    if (confirm == true) {
+      await FirebaseAuth.instance.signOut();
+      if (!mounted) return;
+      Navigator.pushAndRemoveUntil(
+        context,
+        MaterialPageRoute(builder: (_) => const LoginScreen()),
+        (route) => false,
+      );
+    }
+  }
+
+  Widget _buildActionCard({
+    required IconData icon,
+    required String title,
+    required String subtitle,
+    required Color color,
+    required VoidCallback onTap,
+  }) {
+    return Card(
+      elevation: 2,
+      margin: const EdgeInsets.only(bottom: 12),
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(16),
+      ),
+      child: ListTile(
+        contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
+        leading: CircleAvatar(
+          backgroundColor: color.withAlpha(30),
+          child: Icon(icon, color: color, size: 24),
+        ),
+        title: Text(
+          title,
+          style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
+        ),
+        subtitle: Text(
+          subtitle,
+          style: TextStyle(fontSize: 12, color: Colors.grey.shade600),
+        ),
+        trailing: const Icon(Icons.arrow_forward_ios, size: 16),
+        onTap: onTap,
+      ),
     );
   }
 
@@ -62,216 +116,287 @@ class _PatientDashboardState extends State<PatientDashboard> {
       );
     }
 
+    final uid = FirebaseAuth.instance.currentUser?.uid ?? "";
+    final patientName = userData?["name"] ?? "Patient";
+
     return Scaffold(
       backgroundColor: const Color(0xFFF5F7FA),
-
       appBar: AppBar(
         title: const Text("Patient Dashboard"),
         centerTitle: true,
+        actions: [
+          IconButton(
+            icon: const Icon(Icons.account_circle_outlined, size: 28),
+            onPressed: () {
+              Navigator.push(
+                context,
+                MaterialPageRoute(
+                  builder: (_) => const PatientProfile(),
+                ),
+              );
+            },
+          ),
+        ],
       ),
-
       body: SingleChildScrollView(
-        padding: const EdgeInsets.all(20),
-
+        padding: const EdgeInsets.all(16),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-
+            // Welcome Card
             Container(
               width: double.infinity,
               padding: const EdgeInsets.all(20),
-
               decoration: BoxDecoration(
-                color: Colors.blue,
+                gradient: const LinearGradient(
+                  colors: [Color(0xFF1976D2), Color(0xFF1565C0)],
+                  begin: Alignment.topLeft,
+                  end: Alignment.bottomRight,
+                ),
                 borderRadius: BorderRadius.circular(20),
+                boxShadow: [
+                  BoxShadow(
+                    color: Colors.blue.withAlpha(50),
+                    blurRadius: 10,
+                    offset: const Offset(0, 4),
+                  ),
+                ],
               ),
-
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-
                   const Text(
                     "Welcome 👋",
                     style: TextStyle(
                       color: Colors.white70,
-                      fontSize: 18,
+                      fontSize: 16,
                     ),
                   ),
-
-                  const SizedBox(height: 10),
-
+                  const SizedBox(height: 6),
                   Text(
-                    userData?["name"] ?? "Patient",
+                    patientName,
                     style: const TextStyle(
                       color: Colors.white,
                       fontWeight: FontWeight.bold,
-                      fontSize: 28,
+                      fontSize: 26,
                     ),
                   ),
-
                   const SizedBox(height: 6),
-
-                  Text(
-                    userData?["role"] ?? "",
-                    style: const TextStyle(
+                  const Text(
+                    "Your Personal Health Records Portal",
+                    style: TextStyle(
                       color: Colors.white70,
+                      fontSize: 13,
                     ),
                   ),
                 ],
               ),
             ),
 
-            const SizedBox(height: 30),
+            const SizedBox(height: 20),
 
+            // Health Summary Title
             const Text(
               "Health Summary",
               style: TextStyle(
-                fontSize: 22,
+                fontSize: 20,
                 fontWeight: FontWeight.bold,
               ),
             ),
 
-            const SizedBox(height: 15),
+            const SizedBox(height: 12),
 
-            Row(
-              children: const [
+            // Real-time Firestore Health Stats
+            StreamBuilder<PatientDashboardStats>(
+              stream: _firestoreService.getPatientStats(uid),
+              builder: (context, snapshot) {
+                final stats = snapshot.data ?? PatientDashboardStats();
 
-                InfoCard(
-                  icon: Icons.description,
-                  title: "Records",
-                  value: "0",
-                  color: Colors.blue,
-                ),
-
-                SizedBox(width: 15),
-
-                InfoCard(
-                  icon: Icons.medication,
-                  title: "Medicines",
-                  value: "0",
-                  color: Colors.green,
-                ),
-              ],
+                return Column(
+                  children: [
+                    Row(
+                      children: [
+                        InfoCard(
+                          icon: Icons.description,
+                          title: "Records",
+                          value: "${stats.recordsCount}",
+                          color: Colors.blue,
+                          onTap: () {
+                            Navigator.push(
+                              context,
+                              MaterialPageRoute(
+                                builder: (_) => const PatientRecords(),
+                              ),
+                            );
+                          },
+                        ),
+                        const SizedBox(width: 12),
+                        InfoCard(
+                          icon: Icons.medication,
+                          title: "Prescriptions",
+                          value: "${stats.prescriptionsCount}",
+                          color: Colors.green,
+                          onTap: () {
+                            Navigator.push(
+                              context,
+                              MaterialPageRoute(
+                                builder: (_) => const PatientPrescriptions(),
+                              ),
+                            );
+                          },
+                        ),
+                      ],
+                    ),
+                    const SizedBox(height: 12),
+                    Row(
+                      children: [
+                        InfoCard(
+                          icon: Icons.science,
+                          title: "Lab Reports",
+                          value: "${stats.labReportsCount}",
+                          color: Colors.orange,
+                          onTap: () {
+                            Navigator.push(
+                              context,
+                              MaterialPageRoute(
+                                builder: (_) => const PatientLabReports(),
+                              ),
+                            );
+                          },
+                        ),
+                        const SizedBox(width: 12),
+                        InfoCard(
+                          icon: Icons.calendar_today,
+                          title: "Appointments",
+                          value: "${stats.appointmentsCount}",
+                          color: Colors.purple,
+                          onTap: () {
+                            Navigator.push(
+                              context,
+                              MaterialPageRoute(
+                                builder: (_) => const PatientAppointments(),
+                              ),
+                            );
+                          },
+                        ),
+                      ],
+                    ),
+                  ],
+                );
+              },
             ),
 
-            const SizedBox(height: 15),
+            const SizedBox(height: 24),
 
-            Row(
-              children: const [
-
-                InfoCard(
-                  icon: Icons.science,
-                  title: "Reports",
-                  value: "0",
-                  color: Colors.orange,
-                ),
-
-                SizedBox(width: 15),
-
-                InfoCard(
-                  icon: Icons.calendar_today,
-                  title: "Appointments",
-                  value: "0",
-                  color: Colors.red,
-                ),
-              ],
-            ),
-
-            const SizedBox(height: 30),
-
+            // Quick Actions Section
             const Text(
-              "Quick Actions",
+              "My Health Hub",
               style: TextStyle(
-                fontSize: 22,
+                fontSize: 20,
                 fontWeight: FontWeight.bold,
               ),
             ),
 
-            const SizedBox(height: 15),
+            const SizedBox(height: 12),
 
-            Card(
-              child: ListTile(
-                leading: const Icon(Icons.folder_open),
-                title: const Text("Medical Records"),
-                trailing: const Icon(Icons.arrow_forward_ios),
-
-                onTap: () {
-                  Navigator.push(
-                    context,
-                    MaterialPageRoute(
-                      builder: (_) => const PatientRecords(),
-                    ),
-                  );
-                },
-              ),
+            _buildActionCard(
+              icon: Icons.folder_open,
+              title: "Medical Records",
+              subtitle: "View diagnosis history and doctor visit notes",
+              color: Colors.blue,
+              onTap: () {
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                    builder: (_) => const PatientRecords(),
+                  ),
+                );
+              },
             ),
 
-            Card(
-              child: ListTile(
-                leading: const Icon(Icons.calendar_today),
-                title: const Text("Appointments"),
-                trailing: const Icon(Icons.arrow_forward_ios),
-
-                onTap: () {
-                  Navigator.push(
-                    context,
-                    MaterialPageRoute(
-                      builder: (_) => const PatientAppointments(),
-                    ),
-                  );
-                },
-              ),
+            _buildActionCard(
+              icon: Icons.calendar_today,
+              title: "My Appointments",
+              subtitle: "Check upcoming and past consultation dates",
+              color: Colors.purple,
+              onTap: () {
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                    builder: (_) => const PatientAppointments(),
+                  ),
+                );
+              },
             ),
 
-            Card(
-              child: ListTile(
-                leading: const Icon(Icons.medication),
-                title: const Text("Prescriptions"),
-                trailing: const Icon(Icons.arrow_forward_ios),
-
-                onTap: () {
-                  ScaffoldMessenger.of(context).showSnackBar(
-                    const SnackBar(
-                      content: Text("Coming Soon"),
-                    ),
-                  );
-                },
-              ),
+            _buildActionCard(
+              icon: Icons.medication,
+              title: "Prescriptions & Medicines",
+              subtitle: "Active medicines, dosages, and doctor advice",
+              color: Colors.green,
+              onTap: () {
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                    builder: (_) => const PatientPrescriptions(),
+                  ),
+                );
+              },
             ),
 
-            Card(
-              child: ListTile(
-                leading: const Icon(Icons.science),
-                title: const Text("Lab Reports"),
-                trailing: const Icon(Icons.arrow_forward_ios),
-
-                onTap: () {
-                  ScaffoldMessenger.of(context).showSnackBar(
-                    const SnackBar(
-                      content: Text("Coming Soon"),
-                    ),
-                  );
-                },
-              ),
+            _buildActionCard(
+              icon: Icons.science,
+              title: "Lab & Diagnostic Reports",
+              subtitle: "Review clinical test results and remarks",
+              color: Colors.orange,
+              onTap: () {
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                    builder: (_) => const PatientLabReports(),
+                  ),
+                );
+              },
             ),
 
-            const SizedBox(height: 30),
+            _buildActionCard(
+              icon: Icons.person_outline,
+              title: "My Profile",
+              subtitle: "Account details, personal information, and UID",
+              color: Colors.indigo,
+              onTap: () {
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                    builder: (_) => const PatientProfile(),
+                  ),
+                );
+              },
+            ),
+
+            const SizedBox(height: 20),
 
             SizedBox(
               width: double.infinity,
+              height: 50,
               child: ElevatedButton.icon(
                 style: ElevatedButton.styleFrom(
                   backgroundColor: Colors.red,
                   foregroundColor: Colors.white,
-                  padding: const EdgeInsets.symmetric(
-                    vertical: 14,
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(14),
                   ),
                 ),
                 onPressed: logout,
                 icon: const Icon(Icons.logout),
-                label: const Text("Logout"),
+                label: const Text(
+                  "Logout",
+                  style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+                ),
               ),
             ),
+
+            const SizedBox(height: 20),
           ],
         ),
       ),

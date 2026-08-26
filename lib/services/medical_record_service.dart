@@ -1,11 +1,12 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 
 import '../models/medical_record_model.dart';
+import '../utils/app_constants.dart';
 
 class MedicalRecordService {
   final FirebaseFirestore _firestore = FirebaseFirestore.instance;
 
-  static const String collectionName = "medical_records";
+  static const String collectionName = AppConstants.medicalRecordsCollection;
 
   /// Add a new medical record
   Future<void> addRecord(MedicalRecordModel record) async {
@@ -21,6 +22,22 @@ class MedicalRecordService {
     return _firestore
         .collection(collectionName)
         .where("patientId", isEqualTo: patientId)
+        .orderBy("visitDate", descending: true)
+        .snapshots()
+        .map(
+          (snapshot) => snapshot.docs.map((doc) {
+            return MedicalRecordModel.fromMap(
+              doc.data(),
+              doc.id,
+            );
+          }).toList(),
+        );
+  }
+
+  /// Get all records (for Doctor overview)
+  Stream<List<MedicalRecordModel>> getAllRecords() {
+    return _firestore
+        .collection(collectionName)
         .orderBy("visitDate", descending: true)
         .snapshots()
         .map(
@@ -61,7 +78,7 @@ class MedicalRecordService {
         .doc(recordId)
         .get();
 
-    if (!doc.exists) return null;
+    if (!doc.exists || doc.data() == null) return null;
 
     return MedicalRecordModel.fromMap(
       doc.data()!,

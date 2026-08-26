@@ -5,6 +5,7 @@ class InfoCard extends StatelessWidget {
   final String title;
   final String value;
   final Color color;
+  final VoidCallback? onTap;
 
   const InfoCard({
     super.key,
@@ -12,56 +13,59 @@ class InfoCard extends StatelessWidget {
     required this.title,
     required this.value,
     required this.color,
+    this.onTap,
   });
 
   @override
   Widget build(BuildContext context) {
     return Expanded(
       child: Card(
-        elevation: 6,
-        shadowColor: color.withOpacity(0.25),
+        elevation: 4,
+        shadowColor: color.withAlpha(50),
         shape: RoundedRectangleBorder(
           borderRadius: BorderRadius.circular(20),
         ),
-        child: Padding(
-          padding: const EdgeInsets.symmetric(
-            horizontal: 16,
-            vertical: 20,
-          ),
-          child: Column(
-            children: [
-              CircleAvatar(
-                radius: 28,
-                backgroundColor: color.withOpacity(0.15),
-                child: Icon(
-                  icon,
-                  color: color,
-                  size: 30,
+        child: InkWell(
+          borderRadius: BorderRadius.circular(20),
+          onTap: onTap,
+          child: Padding(
+            padding: const EdgeInsets.symmetric(
+              horizontal: 14,
+              vertical: 18,
+            ),
+            child: Column(
+              children: [
+                CircleAvatar(
+                  radius: 26,
+                  backgroundColor: color.withAlpha(35),
+                  child: Icon(
+                    icon,
+                    color: color,
+                    size: 28,
+                  ),
                 ),
-              ),
-
-              const SizedBox(height: 15),
-
-              Text(
-                value,
-                style: const TextStyle(
-                  fontSize: 28,
-                  fontWeight: FontWeight.bold,
+                const SizedBox(height: 12),
+                Text(
+                  value,
+                  style: const TextStyle(
+                    fontSize: 26,
+                    fontWeight: FontWeight.bold,
+                  ),
                 ),
-              ),
-
-              const SizedBox(height: 8),
-
-              Text(
-                title,
-                textAlign: TextAlign.center,
-                style: const TextStyle(
-                  fontSize: 14,
-                  color: Colors.grey,
-                  fontWeight: FontWeight.w500,
+                const SizedBox(height: 6),
+                Text(
+                  title,
+                  textAlign: TextAlign.center,
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                  style: TextStyle(
+                    fontSize: 13,
+                    color: Colors.grey.shade700,
+                    fontWeight: FontWeight.w500,
+                  ),
                 ),
-              ),
-            ],
+              ],
+            ),
           ),
         ),
       ),

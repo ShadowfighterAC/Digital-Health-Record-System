@@ -5,14 +5,14 @@ import '../../services/firestore_service.dart';
 import '../../widgets/profile_tile.dart';
 import '../auth/login_screen.dart';
 
-class PatientProfile extends StatefulWidget {
-  const PatientProfile({super.key});
+class DoctorProfileScreen extends StatefulWidget {
+  const DoctorProfileScreen({super.key});
 
   @override
-  State<PatientProfile> createState() => _PatientProfileState();
+  State<DoctorProfileScreen> createState() => _DoctorProfileScreenState();
 }
 
-class _PatientProfileState extends State<PatientProfile> {
+class _DoctorProfileScreenState extends State<DoctorProfileScreen> {
   final FirestoreService _firestoreService = FirestoreService();
 
   Map<String, dynamic>? userData;
@@ -39,7 +39,7 @@ class _PatientProfileState extends State<PatientProfile> {
 
   String _getInitials(String name) {
     final trimmed = name.trim();
-    if (trimmed.isEmpty) return "P";
+    if (trimmed.isEmpty) return "Dr";
     final words = trimmed.split(" ");
     if (words.length == 1) {
       return words[0][0].toUpperCase();
@@ -53,7 +53,7 @@ class _PatientProfileState extends State<PatientProfile> {
     showDialog(
       context: context,
       builder: (ctx) => AlertDialog(
-        title: const Text("Edit Profile Name"),
+        title: const Text("Edit Doctor Name"),
         content: TextField(
           controller: nameController,
           decoration: const InputDecoration(
@@ -76,7 +76,7 @@ class _PatientProfileState extends State<PatientProfile> {
                 Navigator.pop(ctx);
                 _loadUser();
                 messenger.showSnackBar(
-                  const SnackBar(content: Text("Name updated successfully")),
+                  const SnackBar(content: Text("Profile updated successfully")),
                 );
               }
             },
@@ -127,21 +127,21 @@ class _PatientProfileState extends State<PatientProfile> {
     }
 
     final uid = FirebaseAuth.instance.currentUser?.uid ?? "";
-    final name = userData?["name"] ?? "Patient";
+    final name = userData?["name"] ?? "Doctor";
     final email = userData?["email"] ?? "";
-    final role = userData?["role"] ?? "Patient";
+    final role = userData?["role"] ?? "Doctor";
 
     return Scaffold(
       backgroundColor: const Color(0xFFF5F7FA),
       appBar: AppBar(
-        title: const Text("My Profile"),
+        title: const Text("Doctor Profile"),
         centerTitle: true,
       ),
       body: SingleChildScrollView(
         padding: const EdgeInsets.all(20),
         child: Column(
           children: [
-            // Patient Avatar Card
+            // Doctor Avatar Card
             Container(
               width: double.infinity,
               padding: const EdgeInsets.symmetric(vertical: 24, horizontal: 16),
@@ -160,19 +160,19 @@ class _PatientProfileState extends State<PatientProfile> {
                 children: [
                   CircleAvatar(
                     radius: 46,
-                    backgroundColor: Colors.blue,
+                    backgroundColor: Colors.blue.shade100,
                     child: Text(
                       _getInitials(name),
                       style: const TextStyle(
                         fontSize: 32,
                         fontWeight: FontWeight.bold,
-                        color: Colors.white,
+                        color: Colors.blue,
                       ),
                     ),
                   ),
                   const SizedBox(height: 14),
                   Text(
-                    name,
+                    "Dr. $name",
                     style: const TextStyle(
                       fontSize: 24,
                       fontWeight: FontWeight.bold,
@@ -183,19 +183,19 @@ class _PatientProfileState extends State<PatientProfile> {
                     padding:
                         const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
                     decoration: BoxDecoration(
-                      color: Colors.green.shade50,
+                      color: Colors.blue.shade50,
                       borderRadius: BorderRadius.circular(20),
                     ),
                     child: Row(
                       mainAxisSize: MainAxisSize.min,
                       children: [
-                        const Icon(Icons.check_circle,
-                            size: 16, color: Colors.green),
+                        const Icon(Icons.verified_user,
+                            size: 16, color: Colors.blue),
                         const SizedBox(width: 6),
                         Text(
                           role,
                           style: const TextStyle(
-                            color: Colors.green,
+                            color: Colors.blue,
                             fontWeight: FontWeight.bold,
                             fontSize: 13,
                           ),
@@ -227,13 +227,13 @@ class _PatientProfileState extends State<PatientProfile> {
 
             ProfileTile(
               icon: Icons.badge_outlined,
-              title: "Role",
+              title: "System Role",
               value: role,
             ),
 
             ProfileTile(
               icon: Icons.fingerprint,
-              title: "Patient ID (Firebase UID)",
+              title: "Doctor ID (Firebase UID)",
               value: uid,
             ),
 
