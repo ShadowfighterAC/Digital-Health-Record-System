@@ -126,7 +126,6 @@ class _PatientProfileState extends State<PatientProfile> {
       );
     }
 
-    final uid = FirebaseAuth.instance.currentUser?.uid ?? "";
     final name = userData?["name"] ?? "Patient";
     final email = userData?["email"] ?? "";
     final role = userData?["role"] ?? "Patient";
@@ -229,12 +228,6 @@ class _PatientProfileState extends State<PatientProfile> {
               icon: Icons.badge_outlined,
               title: "Role",
               value: role,
-            ),
-
-            ProfileTile(
-              icon: Icons.fingerprint,
-              title: "Patient ID (Firebase UID)",
-              value: uid,
             ),
 
             const SizedBox(height: 20),

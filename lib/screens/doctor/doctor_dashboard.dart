@@ -7,6 +7,7 @@ import '../auth/login_screen.dart';
 import 'doctor_appointments_screen.dart';
 import 'doctor_lab_reports_screen.dart';
 import 'doctor_prescriptions_screen.dart';
+import 'doctor_medical_history_screen.dart';
 import 'doctor_profile_screen.dart';
 import 'patient_list_screen.dart';
 
@@ -352,6 +353,21 @@ class _DoctorDashboardState extends State<DoctorDashboard> {
                   context,
                   MaterialPageRoute(
                     builder: (_) => const DoctorLabReportsScreen(),
+                  ),
+                );
+              },
+            ),
+
+            _buildDashboardButton(
+              icon: Icons.history_edu_outlined,
+              title: "Medical History",
+              subtitle: "Review diagnoses, surgeries, conditions & document files",
+              color: Colors.indigo,
+              onTap: () {
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                    builder: (_) => const DoctorMedicalHistoryScreen(),
                   ),
                 );
               },

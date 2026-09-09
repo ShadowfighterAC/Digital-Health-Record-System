@@ -1,11 +1,15 @@
-import 'package:cloud_firestore/cloud_firestore.dart';
+﻿import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 
+import '../../models/attachment_model.dart';
 import '../../models/lab_report_model.dart';
 import '../../services/firestore_service.dart';
 import '../../services/lab_report_service.dart';
+import '../../services/storage_service.dart';
+import '../../utils/app_constants.dart';
+import '../../widgets/attachment_picker_widget.dart';
 
 class AddLabReportScreen extends StatefulWidget {
   final String patientId;
@@ -23,18 +27,19 @@ class AddLabReportScreen extends StatefulWidget {
 
 class _AddLabReportScreenState extends State<AddLabReportScreen> {
   final _formKey = GlobalKey<FormState>();
+  final LabReportService _service = LabReportService();
+  final FirestoreService _firestoreService = FirestoreService();
+  final StorageService _storageService = StorageService();
 
-  final doctorNameController = TextEditingController();
   final testNameController = TextEditingController();
   final resultController = TextEditingController();
   final referenceRangeController = TextEditingController();
   final remarksController = TextEditingController();
-
-  final LabReportService _service = LabReportService();
-  final FirestoreService _firestoreService = FirestoreService();
+  final doctorNameController = TextEditingController();
 
   DateTime reportDate = DateTime.now();
   bool isLoading = false;
+  List<PendingAttachment> pendingAttachments = [];
 
   @override
   void initState() {
@@ -56,11 +61,11 @@ class _AddLabReportScreenState extends State<AddLabReportScreen> {
 
   @override
   void dispose() {
-    doctorNameController.dispose();
     testNameController.dispose();
     resultController.dispose();
     referenceRangeController.dispose();
     remarksController.dispose();
+    doctorNameController.dispose();
     super.dispose();
   }
 
@@ -88,9 +93,24 @@ class _AddLabReportScreenState extends State<AddLabReportScreen> {
 
     try {
       final currentUid = FirebaseAuth.instance.currentUser?.uid ?? "";
+      final reportId = _service.newReportId();
+
+      // Upload pending attachments to Firebase Storage
+      final List<AttachmentModel> uploadedAttachments = [];
+      for (final pending in pendingAttachments) {
+        final attachment = await _storageService.uploadAttachment(
+          patientId: widget.patientId,
+          category: 'lab_reports',
+          recordId: reportId,
+          file: pending.file,
+          originalName: pending.originalName,
+          type: pending.type,
+        );
+        uploadedAttachments.add(attachment);
+      }
 
       final report = LabReportModel(
-        id: "",
+        id: reportId,
         patientId: widget.patientId,
         patientName: widget.patientName,
         doctorName: doctorNameController.text.trim(),
@@ -100,6 +120,7 @@ class _AddLabReportScreenState extends State<AddLabReportScreen> {
         referenceRange: referenceRangeController.text.trim(),
         remarks: remarksController.text.trim(),
         reportDate: reportDate,
+        attachments: uploadedAttachments,
         createdAt: Timestamp.now(),
       );
 
@@ -158,6 +179,8 @@ class _AddLabReportScreenState extends State<AddLabReportScreen> {
           border: OutlineInputBorder(
             borderRadius: BorderRadius.circular(12),
           ),
+          filled: true,
+          fillColor: Colors.white,
         ),
       ),
     );
@@ -168,7 +191,7 @@ class _AddLabReportScreenState extends State<AddLabReportScreen> {
     return Scaffold(
       backgroundColor: const Color(0xFFF5F7FA),
       appBar: AppBar(
-        title: const Text("Add Lab Report"),
+        title: const Text("New Lab Report"),
         centerTitle: true,
       ),
       body: SingleChildScrollView(
@@ -178,7 +201,6 @@ class _AddLabReportScreenState extends State<AddLabReportScreen> {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
-              // Patient summary card
               Card(
                 elevation: 2,
                 color: Colors.blue.shade50,
@@ -194,58 +216,50 @@ class _AddLabReportScreenState extends State<AddLabReportScreen> {
                     widget.patientName,
                     style: const TextStyle(fontWeight: FontWeight.bold),
                   ),
-                  subtitle: Text("Patient ID: ${widget.patientId}"),
+                  subtitle: const Text("Selected Patient"),
                 ),
               ),
 
               const SizedBox(height: 16),
 
               Card(
-                elevation: 3,
+                elevation: 2,
                 shape: RoundedRectangleBorder(
                   borderRadius: BorderRadius.circular(16),
                 ),
                 child: Padding(
-                  padding: const EdgeInsets.all(18),
+                  padding: const EdgeInsets.all(16),
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      const Text(
-                        "Test & Diagnostic Details",
-                        style: TextStyle(
-                          fontSize: 16,
-                          fontWeight: FontWeight.bold,
-                        ),
-                      ),
-                      const SizedBox(height: 16),
-
                       _buildField(
                         controller: doctorNameController,
-                        label: "Referring Doctor",
+                        label: "Referring / Ordering Doctor",
+                        hintText: "Dr. Full Name",
                         icon: Icons.medical_services_outlined,
                       ),
 
-                      // Common Test quick selector
                       const Text(
-                        "Quick Test Selector:",
-                        style: TextStyle(fontSize: 12, fontWeight: FontWeight.w600, color: Colors.grey),
+                        "Quick Select Test:",
+                        style: TextStyle(
+                          fontSize: 13,
+                          fontWeight: FontWeight.w600,
+                          color: Colors.grey,
+                        ),
                       ),
-                      const SizedBox(height: 6),
+                      const SizedBox(height: 8),
+
                       Wrap(
                         spacing: 8,
                         runSpacing: 4,
-                        children: [
-                          "CBC",
-                          "Blood Glucose",
-                          "Lipid Profile",
-                          "Thyroid (TSH)",
-                          "LFT",
-                          "KFT",
-                        ].map((test) {
+                        children: AppConstants.commonLabTests.take(6).map((test) {
                           return ActionChip(
                             label: Text(test, style: const TextStyle(fontSize: 12)),
+                            backgroundColor: Colors.blue.shade50,
                             onPressed: () {
-                              testNameController.text = test;
+                              setState(() {
+                                testNameController.text = test;
+                              });
                             },
                           );
                         }).toList(),
@@ -302,6 +316,27 @@ class _AddLabReportScreenState extends State<AddLabReportScreen> {
                 ),
               ),
 
+              const SizedBox(height: 16),
+
+              // Attachments Section
+              Card(
+                elevation: 2,
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(16),
+                ),
+                child: Padding(
+                  padding: const EdgeInsets.all(16),
+                  child: AttachmentPickerWidget(
+                    initialAttachments: pendingAttachments,
+                    onAttachmentsChanged: (updated) {
+                      setState(() {
+                        pendingAttachments = updated;
+                      });
+                    },
+                  ),
+                ),
+              ),
+
               const SizedBox(height: 24),
 
               SizedBox(
@@ -309,14 +344,19 @@ class _AddLabReportScreenState extends State<AddLabReportScreen> {
                 child: ElevatedButton.icon(
                   onPressed: isLoading ? null : _saveLabReport,
                   icon: isLoading
-                      ? const SizedBox.shrink()
+                      ? const SizedBox(
+                          width: 20,
+                          height: 20,
+                          child: CircularProgressIndicator(
+                            color: Colors.white,
+                            strokeWidth: 2,
+                          ),
+                        )
                       : const Icon(Icons.check_circle_outline),
-                  label: isLoading
-                      ? const CircularProgressIndicator(color: Colors.white)
-                      : const Text(
-                          "Save Lab Report",
-                          style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
-                        ),
+                  label: Text(
+                    isLoading ? "Uploading & Saving..." : "Save Lab Report",
+                    style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+                  ),
                 ),
               ),
 

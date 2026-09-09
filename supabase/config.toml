@@ -1,0 +1,4 @@
+project_id = "tuektzinaytyxdaambbu"
+
+[functions.set-claim]
+verify_jwt = false

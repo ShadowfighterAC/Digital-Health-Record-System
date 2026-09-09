@@ -223,7 +223,7 @@ class _AddPrescriptionScreenState extends State<AddPrescriptionScreen> {
                     style: const TextStyle(fontWeight: FontWeight.bold),
                   ),
                   subtitle: Text(
-                    "Patient ID: ${widget.patientId}",
+                    "Selected Patient",
                     style: TextStyle(fontSize: 12, color: Colors.grey.shade700),
                   ),
                 ),

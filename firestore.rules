@@ -70,5 +70,14 @@ service cloud.firestore {
       // Only doctors / lab staff can create, update, or delete lab reports
       allow create, update, delete: if isDoctor();
     }
+
+    // MEDICAL HISTORY COLLECTION
+    match /medical_history/{historyId} {
+      // Patients can read only their own history; doctors can read all history
+      allow read: if (isAuthenticated() && resource.data.patientId == request.auth.uid) || isDoctor();
+
+      // Only doctors can create, update, or delete medical history records
+      allow create, update, delete: if isDoctor();
+    }
   }
 }

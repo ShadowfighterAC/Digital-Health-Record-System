@@ -1,18 +1,30 @@
-import 'package:cloud_firestore/cloud_firestore.dart';
+﻿import 'package:cloud_firestore/cloud_firestore.dart';
 
 import '../models/medical_record_model.dart';
 import '../utils/app_constants.dart';
+import 'storage_service.dart';
 
 class MedicalRecordService {
   final FirebaseFirestore _firestore = FirebaseFirestore.instance;
+  final StorageService _storageService = StorageService();
 
   static const String collectionName = AppConstants.medicalRecordsCollection;
 
+  /// Generate a unique document ID
+  String newRecordId() {
+    return _firestore.collection(collectionName).doc().id;
+  }
+
   /// Add a new medical record
   Future<void> addRecord(MedicalRecordModel record) async {
-    await _firestore
-        .collection(collectionName)
-        .add(record.toMap());
+    if (record.id.isNotEmpty) {
+      await _firestore
+          .collection(collectionName)
+          .doc(record.id)
+          .set(record.toMap());
+    } else {
+      await _firestore.collection(collectionName).add(record.toMap());
+    }
   }
 
   /// Get all records for a patient
@@ -61,8 +73,15 @@ class MedicalRecordService {
         .update(record.toMap());
   }
 
-  /// Delete a medical record
-  Future<void> deleteRecord(String recordId) async {
+  /// Delete a medical record and clean up attachments
+  Future<void> deleteRecord(String recordId, [List<String>? storagePaths]) async {
+    if (storagePaths != null) {
+      for (final path in storagePaths) {
+        if (path.isNotEmpty) {
+          await _storageService.deleteAttachment(path);
+        }
+      }
+    }
     await _firestore
         .collection(collectionName)
         .doc(recordId)

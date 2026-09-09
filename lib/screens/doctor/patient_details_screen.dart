@@ -1,19 +1,23 @@
-import 'package:flutter/material.dart';
+﻿import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 
 import '../../models/appointment_model.dart';
+import '../../models/lab_report_model.dart';
+import '../../models/medical_history_model.dart';
 import '../../models/medical_record_model.dart';
 import '../../models/patient_model.dart';
 import '../../models/prescription_model.dart';
-import '../../models/lab_report_model.dart';
 import '../../services/appointment_service.dart';
+import '../../services/lab_report_service.dart';
+import '../../services/medical_history_service.dart';
 import '../../services/medical_record_service.dart';
 import '../../services/prescription_service.dart';
-import '../../services/lab_report_service.dart';
+import '../../widgets/attachment_view_widget.dart';
 import 'add_appointment_screen.dart';
+import 'add_lab_report_screen.dart';
+import 'add_medical_history_screen.dart';
 import 'add_medical_record_screen.dart';
 import 'add_prescription_screen.dart';
-import 'add_lab_report_screen.dart';
 
 class PatientDetailsScreen extends StatefulWidget {
   final PatientModel patient;
@@ -32,6 +36,7 @@ class _PatientDetailsScreenState extends State<PatientDetailsScreen>
   late TabController _tabController;
 
   final MedicalRecordService _recordService = MedicalRecordService();
+  final MedicalHistoryService _historyService = MedicalHistoryService();
   final PrescriptionService _prescriptionService = PrescriptionService();
   final LabReportService _labReportService = LabReportService();
   final AppointmentService _appointmentService = AppointmentService();
@@ -39,7 +44,7 @@ class _PatientDetailsScreenState extends State<PatientDetailsScreen>
   @override
   void initState() {
     super.initState();
-    _tabController = TabController(length: 4, vsync: this);
+    _tabController = TabController(length: 5, vsync: this);
   }
 
   @override
@@ -59,7 +64,7 @@ class _PatientDetailsScreenState extends State<PatientDetailsScreen>
         onTap: onTap,
         borderRadius: BorderRadius.circular(12),
         child: Container(
-          padding: const EdgeInsets.symmetric(vertical: 10, horizontal: 4),
+          padding: const EdgeInsets.symmetric(vertical: 8, horizontal: 2),
           decoration: BoxDecoration(
             color: color.withAlpha(25),
             borderRadius: BorderRadius.circular(12),
@@ -68,13 +73,13 @@ class _PatientDetailsScreenState extends State<PatientDetailsScreen>
           child: Column(
             mainAxisSize: MainAxisSize.min,
             children: [
-              Icon(icon, color: color, size: 22),
-              const SizedBox(height: 4),
+              Icon(icon, color: color, size: 20),
+              const SizedBox(height: 3),
               Text(
                 label,
                 textAlign: TextAlign.center,
                 style: TextStyle(
-                  fontSize: 11,
+                  fontSize: 10,
                   fontWeight: FontWeight.bold,
                   color: color,
                 ),
@@ -105,7 +110,7 @@ class _PatientDetailsScreenState extends State<PatientDetailsScreen>
           itemBuilder: (context, index) {
             final rec = records[index];
             return Card(
-              margin: const EdgeInsets.only(bottom: 10),
+              margin: const EdgeInsets.only(bottom: 12),
               shape: RoundedRectangleBorder(
                 borderRadius: BorderRadius.circular(14),
               ),
@@ -121,9 +126,20 @@ class _PatientDetailsScreenState extends State<PatientDetailsScreen>
                         fontWeight: FontWeight.bold,
                       ),
                     ),
-                    const SizedBox(height: 6),
-                    Text("Prescription: ${rec.prescription}"),
-                    if (rec.notes.isNotEmpty) Text("Notes: ${rec.notes}"),
+                    if (rec.prescription.isNotEmpty) ...[
+                      const SizedBox(height: 6),
+                      Text("Prescription: ${rec.prescription}"),
+                    ],
+                    if (rec.notes.isNotEmpty) ...[
+                      const SizedBox(height: 4),
+                      Text(
+                        "Notes: ${rec.notes}",
+                        style: TextStyle(color: Colors.grey.shade700),
+                      ),
+                    ],
+                    if (rec.attachments.isNotEmpty) ...[
+                      AttachmentViewWidget(attachments: rec.attachments),
+                    ],
                     const Divider(height: 16),
                     Row(
                       mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -143,6 +159,112 @@ class _PatientDetailsScreenState extends State<PatientDetailsScreen>
                           ),
                         ),
                       ],
+                    ),
+                  ],
+                ),
+              ),
+            );
+          },
+        );
+      },
+    );
+  }
+
+  Widget _buildHistoryTab() {
+    return StreamBuilder<List<MedicalHistoryModel>>(
+      stream: _historyService.getPatientHistory(widget.patient.uid),
+      builder: (context, snapshot) {
+        if (snapshot.connectionState == ConnectionState.waiting) {
+          return const Center(child: CircularProgressIndicator());
+        }
+        final historyList = snapshot.data ?? [];
+        if (historyList.isEmpty) {
+          return const Center(
+            child: Text("No medical history recorded for this patient."),
+          );
+        }
+        return ListView.builder(
+          padding: const EdgeInsets.all(12),
+          itemCount: historyList.length,
+          itemBuilder: (context, index) {
+            final history = historyList[index];
+            return Card(
+              margin: const EdgeInsets.only(bottom: 12),
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(14),
+              ),
+              child: Padding(
+                padding: const EdgeInsets.all(14),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      children: [
+                        Container(
+                          padding: const EdgeInsets.symmetric(
+                            horizontal: 8,
+                            vertical: 3,
+                          ),
+                          decoration: BoxDecoration(
+                            color: Colors.teal.shade50,
+                            borderRadius: BorderRadius.circular(12),
+                            border: Border.all(color: Colors.teal.shade200),
+                          ),
+                          child: Text(
+                            history.category,
+                            style: TextStyle(
+                              color: Colors.teal.shade800,
+                              fontSize: 11,
+                              fontWeight: FontWeight.bold,
+                            ),
+                          ),
+                        ),
+                        Text(
+                          DateFormat("dd MMM yyyy").format(history.historyDate),
+                          style: TextStyle(
+                            fontSize: 12,
+                            color: Colors.grey.shade600,
+                          ),
+                        ),
+                      ],
+                    ),
+                    const SizedBox(height: 8),
+                    Text(
+                      history.title,
+                      style: const TextStyle(
+                        fontSize: 16,
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+                    if (history.description.isNotEmpty) ...[
+                      const SizedBox(height: 6),
+                      Text(
+                        history.description,
+                        style: TextStyle(color: Colors.grey.shade800),
+                      ),
+                    ],
+                    if (history.notes.isNotEmpty) ...[
+                      const SizedBox(height: 4),
+                      Text(
+                        "Doctor Remarks: ${history.notes}",
+                        style: TextStyle(
+                          fontSize: 12,
+                          fontStyle: FontStyle.italic,
+                          color: Colors.grey.shade700,
+                        ),
+                      ),
+                    ],
+                    if (history.attachments.isNotEmpty) ...[
+                      AttachmentViewWidget(attachments: history.attachments),
+                    ],
+                    const Divider(height: 16),
+                    Text(
+                      "Recorded by: ${history.doctorName}",
+                      style: TextStyle(
+                        fontSize: 11,
+                        color: Colors.grey.shade600,
+                      ),
                     ),
                   ],
                 ),
@@ -201,7 +323,10 @@ class _PatientDetailsScreenState extends State<PatientDetailsScreen>
                       const SizedBox(height: 4),
                       Text(
                         "Advice: ${rx.notes}",
-                        style: TextStyle(fontSize: 12, color: Colors.grey.shade700),
+                        style: TextStyle(
+                          fontSize: 12,
+                          color: Colors.grey.shade700,
+                        ),
                       ),
                     ],
                   ],
@@ -233,7 +358,7 @@ class _PatientDetailsScreenState extends State<PatientDetailsScreen>
           itemBuilder: (context, index) {
             final lab = list[index];
             return Card(
-              margin: const EdgeInsets.only(bottom: 10),
+              margin: const EdgeInsets.only(bottom: 12),
               shape: RoundedRectangleBorder(
                 borderRadius: BorderRadius.circular(14),
               ),
@@ -258,17 +383,29 @@ class _PatientDetailsScreenState extends State<PatientDetailsScreen>
                     if (lab.referenceRange.isNotEmpty)
                       Text(
                         "Normal: ${lab.referenceRange}",
-                        style: TextStyle(fontSize: 12, color: Colors.grey.shade600),
+                        style: TextStyle(
+                          fontSize: 12,
+                          color: Colors.grey.shade600,
+                        ),
                       ),
                     if (lab.remarks.isNotEmpty)
                       Text(
                         "Remarks: ${lab.remarks}",
-                        style: TextStyle(fontSize: 12, color: Colors.grey.shade700),
+                        style: TextStyle(
+                          fontSize: 12,
+                          color: Colors.grey.shade700,
+                        ),
                       ),
+                    if (lab.attachments.isNotEmpty) ...[
+                      AttachmentViewWidget(attachments: lab.attachments),
+                    ],
                     const Divider(height: 14),
                     Text(
                       DateFormat("dd MMM yyyy").format(lab.reportDate),
-                      style: TextStyle(fontSize: 11, color: Colors.grey.shade600),
+                      style: TextStyle(
+                        fontSize: 11,
+                        color: Colors.grey.shade600,
+                      ),
                     ),
                   ],
                 ),
@@ -389,14 +526,6 @@ class _PatientDetailsScreenState extends State<PatientDetailsScreen>
                               fontSize: 13,
                             ),
                           ),
-                          const SizedBox(height: 2),
-                          Text(
-                            "UID: ${widget.patient.uid}",
-                            style: TextStyle(
-                              color: Colors.grey.shade500,
-                              fontSize: 11,
-                            ),
-                          ),
                         ],
                       ),
                     ),
@@ -422,7 +551,24 @@ class _PatientDetailsScreenState extends State<PatientDetailsScreen>
                         );
                       },
                     ),
-                    const SizedBox(width: 8),
+                    const SizedBox(width: 6),
+                    _buildActionButton(
+                      icon: Icons.history_edu,
+                      label: "+ History",
+                      color: Colors.teal,
+                      onTap: () {
+                        Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                            builder: (_) => AddMedicalHistoryScreen(
+                              patientId: widget.patient.uid,
+                              patientName: widget.patient.name,
+                            ),
+                          ),
+                        );
+                      },
+                    ),
+                    const SizedBox(width: 6),
                     _buildActionButton(
                       icon: Icons.medication,
                       label: "+ Rx",
@@ -439,7 +585,7 @@ class _PatientDetailsScreenState extends State<PatientDetailsScreen>
                         );
                       },
                     ),
-                    const SizedBox(width: 8),
+                    const SizedBox(width: 6),
                     _buildActionButton(
                       icon: Icons.science,
                       label: "+ Lab",
@@ -456,7 +602,7 @@ class _PatientDetailsScreenState extends State<PatientDetailsScreen>
                         );
                       },
                     ),
-                    const SizedBox(width: 8),
+                    const SizedBox(width: 6),
                     _buildActionButton(
                       icon: Icons.calendar_month,
                       label: "+ Appt",
@@ -484,11 +630,14 @@ class _PatientDetailsScreenState extends State<PatientDetailsScreen>
             color: Colors.white,
             child: TabBar(
               controller: _tabController,
+              isScrollable: true,
+              tabAlignment: TabAlignment.center,
               labelColor: Colors.blue,
               unselectedLabelColor: Colors.grey,
               indicatorColor: Colors.blue,
               tabs: const [
                 Tab(text: "Records"),
+                Tab(text: "History"),
                 Tab(text: "Prescriptions"),
                 Tab(text: "Lab Tests"),
                 Tab(text: "Appointments"),
@@ -502,6 +651,7 @@ class _PatientDetailsScreenState extends State<PatientDetailsScreen>
               controller: _tabController,
               children: [
                 _buildRecordsTab(),
+                _buildHistoryTab(),
                 _buildPrescriptionsTab(),
                 _buildLabReportsTab(),
                 _buildAppointmentsTab(),

@@ -3,6 +3,7 @@ import 'package:intl/intl.dart';
 
 import '../../models/lab_report_model.dart';
 import '../../services/lab_report_service.dart';
+import '../../widgets/attachment_view_widget.dart';
 import 'patient_list_screen.dart';
 
 class DoctorLabReportsScreen extends StatefulWidget {
@@ -190,7 +191,9 @@ class _DoctorLabReportsScreenState extends State<DoctorLabReportsScreen> {
                                       ),
                                       const SizedBox(height: 4),
                                       Text(
-                                        "Patient: ${report.patientName.isNotEmpty ? report.patientName : report.patientId}",
+                                        report.patientName.isNotEmpty
+                                            ? "Patient: ${report.patientName}"
+                                            : "Patient Record",
                                         style: const TextStyle(
                                           fontSize: 14,
                                           fontWeight: FontWeight.w600,
@@ -261,6 +264,12 @@ class _DoctorLabReportsScreenState extends State<DoctorLabReportsScreen> {
                                   fontSize: 13,
                                   color: Colors.grey.shade800,
                                 ),
+                              ),
+                            ],
+
+                            if (report.attachments.isNotEmpty) ...[
+                              AttachmentViewWidget(
+                                attachments: report.attachments,
                               ),
                             ],
 

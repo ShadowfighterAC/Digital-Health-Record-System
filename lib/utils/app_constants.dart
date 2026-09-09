@@ -4,9 +4,33 @@ class AppConstants {
   // Firestore Collections
   static const String usersCollection = "users";
   static const String medicalRecordsCollection = "medical_records";
+  static const String medicalHistoryCollection = "medical_history";
   static const String appointmentsCollection = "appointments";
   static const String prescriptionsCollection = "prescriptions";
   static const String labReportsCollection = "lab_reports";
+
+  // File size limits in bytes
+  static const int maxImageSizeBytes = 10 * 1024 * 1024; // 10 MB
+  static const int maxPdfSizeBytes = 20 * 1024 * 1024; // 20 MB
+
+  // Supabase Configuration (Storage only)
+  static const String supabaseUrl = "https://tuektzinaytyxdaambbu.supabase.co";
+  static const String supabasePublishableKey =
+      "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InR1ZWt0emluYXl0eXhkYWFtYmJ1Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODg5NDA0OTEsImV4cCI6MjEwNDUxNjQ5MX0.CvGnGUY9RSzw6pk282jnQzyBVPMngZYQ_87DY2n__KY";
+  static const String supabaseStorageBucket = "ehr-files";
+
+  // Medical History Categories
+  static const List<String> medicalHistoryCategories = [
+    "Previous Diagnosis",
+    "Previous Treatment",
+    "Previous Surgery",
+    "Hospitalization",
+    "Allergies",
+    "Existing Conditions",
+    "Previous Medications",
+    "Family History",
+    "Other History",
+  ];
 
   // User Roles
   static const String roleDoctor = "Doctor";

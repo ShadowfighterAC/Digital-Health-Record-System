@@ -1,0 +1,33 @@
+﻿rules_version = '2';
+service firebase.storage {
+  match /b/{bucket}/o {
+
+    // Helper functions
+    function isAuthenticated() {
+      return request.auth != null;
+    }
+
+    function isDoctor() {
+      return isAuthenticated() &&
+        firestore.exists(/databases/(default)/documents/users/$(request.auth.uid)) &&
+        firestore.get(/databases/(default)/documents/users/$(request.auth.uid)).data.role == "Doctor";
+    }
+
+    function isPatientOwner(patientId) {
+      return isAuthenticated() && request.auth.uid == patientId;
+    }
+
+    // Patient directory attachments
+    match /patients/{patientId}/{allPaths=**} {
+      // Patients can read only their own attachments; Doctors can read all attachments
+      allow read: if isPatientOwner(patientId) || isDoctor();
+
+      // Only Doctors can upload files with valid size restrictions
+      allow write: if isDoctor()
+        && (
+          (request.resource.contentType.matches('image/.*') && request.resource.size <= 10 * 1024 * 1024) ||
+          (request.resource.contentType == 'application/pdf' && request.resource.size <= 20 * 1024 * 1024)
+        );
+    }
+  }
+}

@@ -1,4 +1,5 @@
-import 'package:cloud_firestore/cloud_firestore.dart';
+﻿import 'package:cloud_firestore/cloud_firestore.dart';
+import 'attachment_model.dart';
 
 class LabReportModel {
   final String id;
@@ -11,6 +12,7 @@ class LabReportModel {
   final String referenceRange;
   final String remarks;
   final DateTime reportDate;
+  final List<AttachmentModel> attachments;
   final Timestamp createdAt;
 
   LabReportModel({
@@ -24,6 +26,7 @@ class LabReportModel {
     this.referenceRange = '',
     this.remarks = '',
     required this.reportDate,
+    this.attachments = const [],
     required this.createdAt,
   });
 
@@ -38,6 +41,7 @@ class LabReportModel {
       'referenceRange': referenceRange,
       'remarks': remarks,
       'reportDate': Timestamp.fromDate(reportDate),
+      'attachments': attachments.map((a) => a.toMap()).toList(),
       'createdAt': createdAt,
     };
   }
@@ -55,6 +59,11 @@ class LabReportModel {
       }
     }
 
+    final rawAttachments = map['attachments'] as List<dynamic>? ?? [];
+    final parsedAttachments = rawAttachments
+        .map((item) => AttachmentModel.fromMap(Map<String, dynamic>.from(item)))
+        .toList();
+
     return LabReportModel(
       id: id,
       patientId: map['patientId'] ?? '',
@@ -66,6 +75,7 @@ class LabReportModel {
       referenceRange: map['referenceRange'] ?? '',
       remarks: map['remarks'] ?? '',
       reportDate: parsedDate,
+      attachments: parsedAttachments,
       createdAt: map['createdAt'] is Timestamp
           ? map['createdAt']
           : Timestamp.now(),

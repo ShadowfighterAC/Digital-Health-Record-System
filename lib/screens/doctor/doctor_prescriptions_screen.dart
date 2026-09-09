@@ -182,7 +182,7 @@ class _DoctorPrescriptionsScreenState extends State<DoctorPrescriptionsScreen> {
                                       Text(
                                         rx.patientName.isNotEmpty
                                             ? rx.patientName
-                                            : "Patient (${rx.patientId.substring(0, 6)}...)",
+                                            : "Patient",
                                         style: const TextStyle(
                                           fontSize: 18,
                                           fontWeight: FontWeight.bold,

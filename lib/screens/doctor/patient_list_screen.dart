@@ -4,6 +4,7 @@ import '../../models/patient_model.dart';
 import '../../services/firestore_service.dart';
 
 import 'add_medical_record_screen.dart';
+import 'add_medical_history_screen.dart';
 import 'add_appointment_screen.dart';
 import 'add_prescription_screen.dart';
 import 'add_lab_report_screen.dart';
@@ -12,6 +13,7 @@ import 'patient_details_screen.dart';
 enum PatientListMode {
   viewDetails,
   addMedicalRecord,
+  addMedicalHistory,
   addAppointment,
   addPrescription,
   addLabReport,
@@ -48,6 +50,8 @@ class _PatientListScreenState extends State<PatientListScreen> {
         return "Select Patient (Appointment)";
       case PatientListMode.addMedicalRecord:
         return "Select Patient (Medical Record)";
+      case PatientListMode.addMedicalHistory:
+        return "Select Patient (Medical History)";
       case PatientListMode.addPrescription:
         return "Select Patient (Prescription)";
       case PatientListMode.addLabReport:
@@ -76,6 +80,18 @@ class _PatientListScreenState extends State<PatientListScreen> {
           context,
           MaterialPageRoute(
             builder: (_) => AddMedicalRecordScreen(
+              patientId: patient.uid,
+              patientName: patient.name,
+            ),
+          ),
+        );
+        break;
+
+      case PatientListMode.addMedicalHistory:
+        Navigator.push(
+          context,
+          MaterialPageRoute(
+            builder: (_) => AddMedicalHistoryScreen(
               patientId: patient.uid,
               patientName: patient.name,
             ),
@@ -249,25 +265,12 @@ class _PatientListScreenState extends State<PatientListScreen> {
                             fontSize: 16,
                           ),
                         ),
-                        subtitle: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            const SizedBox(height: 2),
-                            Text(
-                              patient.email,
-                              style: TextStyle(
-                                fontSize: 13,
-                                color: Colors.grey.shade700,
-                              ),
-                            ),
-                            Text(
-                              "UID: ${patient.uid.length > 12 ? '${patient.uid.substring(0, 12)}...' : patient.uid}",
-                              style: TextStyle(
-                                fontSize: 11,
-                                color: Colors.grey.shade500,
-                              ),
-                            ),
-                          ],
+                        subtitle: Text(
+                          patient.email,
+                          style: TextStyle(
+                            fontSize: 13,
+                            color: Colors.grey.shade700,
+                          ),
                         ),
                         trailing: const Icon(
                           Icons.arrow_forward_ios,

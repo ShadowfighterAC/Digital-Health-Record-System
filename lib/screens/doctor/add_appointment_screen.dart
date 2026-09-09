@@ -78,6 +78,7 @@ class _AddAppointmentScreenState extends State<AddAppointmentScreen> {
       final appointment = AppointmentModel(
         id: "",
         patientId: widget.patientId,
+        patientName: widget.patientName,
         doctorName: doctorController.text.trim(),
         appointmentDate: appointmentDate,
         appointmentTime: appointmentTime.format(context),
@@ -154,8 +155,11 @@ class _AddAppointmentScreenState extends State<AddAppointmentScreen> {
                   leading: const CircleAvatar(
                     child: Icon(Icons.person),
                   ),
-                  title: Text(widget.patientName),
-                  subtitle: Text(widget.patientId),
+                  title: Text(
+                    widget.patientName,
+                    style: const TextStyle(fontWeight: FontWeight.bold),
+                  ),
+                  subtitle: const Text("Selected Patient"),
                 ),
               ),
 

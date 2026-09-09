@@ -3,6 +3,7 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 class AppointmentModel {
   final String id;
   final String patientId;
+  final String patientName;
   final String doctorName;
   final DateTime appointmentDate;
   final String appointmentTime;
@@ -13,6 +14,7 @@ class AppointmentModel {
   AppointmentModel({
     required this.id,
     required this.patientId,
+    this.patientName = "",
     required this.doctorName,
     required this.appointmentDate,
     required this.appointmentTime,
@@ -24,6 +26,7 @@ class AppointmentModel {
   Map<String, dynamic> toMap() {
     return {
       "patientId": patientId,
+      "patientName": patientName,
       "doctorName": doctorName,
       "appointmentDate": Timestamp.fromDate(appointmentDate),
       "appointmentTime": appointmentTime,
@@ -40,6 +43,7 @@ class AppointmentModel {
     return AppointmentModel(
       id: id,
       patientId: map["patientId"] ?? "",
+      patientName: map["patientName"] ?? "",
       doctorName: map["doctorName"] ?? "",
       appointmentDate:
           (map["appointmentDate"] as Timestamp).toDate(),

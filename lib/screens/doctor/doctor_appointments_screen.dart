@@ -211,7 +211,9 @@ class _DoctorAppointmentsScreenState extends State<DoctorAppointmentsScreen>
                     const SizedBox(width: 8),
                     Expanded(
                       child: Text(
-                        "Patient ID: ${appt.patientId}",
+                        appt.patientName.isNotEmpty
+                            ? "Patient: ${appt.patientName}"
+                            : "Patient Appointment",
                         style: const TextStyle(fontWeight: FontWeight.w500),
                       ),
                     ),

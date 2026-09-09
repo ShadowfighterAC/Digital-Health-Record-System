@@ -5,6 +5,7 @@ import '../../services/firestore_service.dart';
 import '../../widgets/info_card.dart';
 import '../auth/login_screen.dart';
 import 'patient_records.dart';
+import 'patient_medical_history.dart';
 import 'patient_appointments.dart';
 import 'patient_prescriptions.dart';
 import 'patient_lab_reports.dart';
@@ -315,6 +316,21 @@ class _PatientDashboardState extends State<PatientDashboard> {
             ),
 
             _buildActionCard(
+              icon: Icons.history_edu,
+              title: "Medical History",
+              subtitle: "Previous diagnoses, surgeries, conditions, and allergies",
+              color: Colors.teal,
+              onTap: () {
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                    builder: (_) => const PatientMedicalHistory(),
+                  ),
+                );
+              },
+            ),
+
+            _buildActionCard(
               icon: Icons.calendar_today,
               title: "My Appointments",
               subtitle: "Check upcoming and past consultation dates",
@@ -362,7 +378,7 @@ class _PatientDashboardState extends State<PatientDashboard> {
             _buildActionCard(
               icon: Icons.person_outline,
               title: "My Profile",
-              subtitle: "Account details, personal information, and UID",
+              subtitle: "Account details and personal information",
               color: Colors.indigo,
               onTap: () {
                 Navigator.push(
