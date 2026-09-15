@@ -17,67 +17,189 @@ service cloud.firestore {
         get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role == "Doctor";
     }
 
+    function isPatient() {
+      return isAuthenticated() &&
+        exists(/databases/$(database)/documents/users/$(request.auth.uid)) &&
+        get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role == "Patient";
+    }
+
+    function isAssignedDoctor(patientId) {
+      return isDoctor() &&
+        exists(/databases/$(database)/documents/users/$(patientId)) &&
+        get(/databases/$(database)/documents/users/$(patientId)).data.currentDoctorId == request.auth.uid;
+    }
+
+    function validDoctor(doctorId) {
+      return exists(/databases/$(database)/documents/users/$(doctorId)) &&
+        get(/databases/$(database)/documents/users/$(doctorId)).data.role == "Doctor";
+    }
+
+
     // USERS COLLECTION
     match /users/{userId} {
-      // User can read their own profile, or doctors can read patient profiles to populate patient directory
-      allow read: if isOwner(userId) || isDoctor();
 
-      // User can create their own account document during registration
-      allow create: if isOwner(userId);
+      // Users can read their own profile.
+      // Patients can read Doctor profiles to choose a doctor.
+      // Doctors can read patients currently assigned to them.
+      allow read: if isOwner(userId)
+        || (isPatient() && resource.data.role == "Doctor")
+        || (isDoctor() && resource.data.role == "Patient" &&
+            resource.data.currentDoctorId == request.auth.uid);
 
-      // User can update their own profile (name, etc.) but cannot modify role
-      allow update: if isOwner(userId) && 
-        (!request.resource.data.diff(resource.data).affectedKeys().hasAny(['role']));
+
+      // User can create their own account document during registration.
+      // Keep this compatible with the existing registration flow.
+      // Only the two application roles are accepted.
+      allow create: if isOwner(userId) &&
+        request.resource.data.role in ["Doctor", "Patient"];
+
+
+      // Users can update their own profile.
+      // Role cannot be changed.
+      // Patients may change their current doctor.
+      allow update: if isOwner(userId) &&
+        request.resource.data.role == resource.data.role &&
+        (
+          resource.data.role == "Doctor" ||
+          (
+            resource.data.role == "Patient" &&
+            (
+              !request.resource.data.keys().hasAny(["currentDoctorId"]) ||
+              validDoctor(request.resource.data.currentDoctorId)
+            )
+          )
+        );
 
       allow delete: if false;
     }
 
+
     // MEDICAL RECORDS COLLECTION
     match /medical_records/{recordId} {
-      // Patients can only read their own medical records; doctors can read all records
-      allow read: if (isAuthenticated() && resource.data.patientId == request.auth.uid) || isDoctor();
 
-      // Only doctors can create, update, or delete medical records
-      allow create, update, delete: if isDoctor();
+      // Patients can read their own records.
+      // Doctors can read records of currently assigned patients.
+      allow read: if
+        (isAuthenticated() &&
+         resource.data.patientId == request.auth.uid)
+        || isAssignedDoctor(resource.data.patientId);
+
+      // Only the assigned doctor can create a record.
+      allow create: if
+        isAssignedDoctor(request.resource.data.patientId);
+
+      // Only the currently assigned doctor can update a record.
+      allow update: if
+        isAssignedDoctor(resource.data.patientId);
+
+      // Only the currently assigned doctor can delete a record.
+      allow delete: if
+        isAssignedDoctor(resource.data.patientId);
     }
+
 
     // APPOINTMENTS COLLECTION
     match /appointments/{appointmentId} {
-      // Patients can read their own appointments; doctors can read all appointments
-      allow read: if (isAuthenticated() && resource.data.patientId == request.auth.uid) || isDoctor();
 
-      // Doctors can schedule and manage appointments
-      allow create, delete: if isDoctor();
+      // Patients can read their own appointments.
+      // Doctors can read appointments of assigned patients.
+      allow read: if
+        (isAuthenticated() &&
+         resource.data.patientId == request.auth.uid)
+        || isAssignedDoctor(resource.data.patientId);
 
-      // Both doctors and the owning patient can update appointment status (e.g. Cancel)
-      allow update: if isDoctor() || (isAuthenticated() && resource.data.patientId == request.auth.uid);
+      // Only the assigned doctor can create an appointment.
+      allow create: if
+        isAssignedDoctor(request.resource.data.patientId);
+
+      // Only the assigned doctor can delete an appointment.
+      allow delete: if
+        isAssignedDoctor(resource.data.patientId);
+
+      // Assigned doctor can update appointments.
+      // Patient can update only the status of their own appointment.
+      allow update: if
+        isAssignedDoctor(resource.data.patientId)
+        ||
+        (
+          isAuthenticated() &&
+          resource.data.patientId == request.auth.uid &&
+          request.resource.data.patientId == resource.data.patientId &&
+          request.resource.data.doctorId == resource.data.doctorId &&
+          request.resource.data.diff(resource.data).affectedKeys().hasOnly(["status"])
+        );
     }
+
 
     // PRESCRIPTIONS COLLECTION
     match /prescriptions/{prescriptionId} {
-      // Patients can read only their own prescriptions; doctors can read all
-      allow read: if (isAuthenticated() && resource.data.patientId == request.auth.uid) || isDoctor();
 
-      // Only doctors can issue, modify, or delete prescriptions
-      allow create, update, delete: if isDoctor();
+      // Patients can read their own prescriptions.
+      // Doctors can read prescriptions of assigned patients.
+      allow read: if
+        (isAuthenticated() &&
+         resource.data.patientId == request.auth.uid)
+        || isAssignedDoctor(resource.data.patientId);
+
+      // Only the assigned doctor can create a prescription.
+      allow create: if
+        isAssignedDoctor(request.resource.data.patientId);
+
+      // Only the currently assigned doctor can update a prescription.
+      allow update: if
+        isAssignedDoctor(resource.data.patientId);
+
+      // Only the currently assigned doctor can delete a prescription.
+      allow delete: if
+        isAssignedDoctor(resource.data.patientId);
     }
+
 
     // LAB REPORTS COLLECTION
-    match /lab_reports/{reportId} {
-      // Patients can read only their own lab reports; doctors can read all
-      allow read: if (isAuthenticated() && resource.data.patientId == request.auth.uid) || isDoctor();
+    match /lab_reports/{labReportId} {
 
-      // Only doctors / lab staff can create, update, or delete lab reports
-      allow create, update, delete: if isDoctor();
+      // Patients can read their own lab reports.
+      // Doctors can read lab reports of assigned patients.
+      allow read: if
+        (isAuthenticated() &&
+         resource.data.patientId == request.auth.uid)
+        || isAssignedDoctor(resource.data.patientId);
+
+      // Only the assigned doctor can create a lab report.
+      allow create: if
+        isAssignedDoctor(request.resource.data.patientId);
+
+      // Only the currently assigned doctor can update a lab report.
+      allow update: if
+        isAssignedDoctor(resource.data.patientId);
+
+      // Only the currently assigned doctor can delete a lab report.
+      allow delete: if
+        isAssignedDoctor(resource.data.patientId);
     }
+
 
     // MEDICAL HISTORY COLLECTION
     match /medical_history/{historyId} {
-      // Patients can read only their own history; doctors can read all history
-      allow read: if (isAuthenticated() && resource.data.patientId == request.auth.uid) || isDoctor();
 
-      // Only doctors can create, update, or delete medical history records
-      allow create, update, delete: if isDoctor();
+      // Patients can read their own medical history.
+      // Doctors can read history of assigned patients.
+      allow read: if
+        (isAuthenticated() &&
+         resource.data.patientId == request.auth.uid)
+        || isAssignedDoctor(resource.data.patientId);
+
+      // Only the assigned doctor can create medical history.
+      allow create: if
+        isAssignedDoctor(request.resource.data.patientId);
+
+      // Only the currently assigned doctor can update history.
+      allow update: if
+        isAssignedDoctor(resource.data.patientId);
+
+      // Only the currently assigned doctor can delete history.
+      allow delete: if
+        isAssignedDoctor(resource.data.patientId);
     }
   }
 }

@@ -13,18 +13,21 @@ class DoctorPrescriptionsScreen extends StatefulWidget {
       _DoctorPrescriptionsScreenState();
 }
 
-class _DoctorPrescriptionsScreenState extends State<DoctorPrescriptionsScreen> {
+class _DoctorPrescriptionsScreenState
+    extends State<DoctorPrescriptionsScreen> {
   final PrescriptionService _service = PrescriptionService();
   String _searchQuery = "";
 
   void _confirmDelete(BuildContext context, String id) {
     final messenger = ScaffoldMessenger.of(context);
+
     showDialog(
       context: context,
       builder: (ctx) => AlertDialog(
         title: const Text("Delete Prescription"),
         content: const Text(
-          "Are you sure you want to delete this prescription? This action cannot be undone.",
+          "Are you sure you want to delete this prescription? "
+          "This action cannot be undone.",
         ),
         actions: [
           TextButton(
@@ -32,13 +35,29 @@ class _DoctorPrescriptionsScreenState extends State<DoctorPrescriptionsScreen> {
             child: const Text("Cancel"),
           ),
           ElevatedButton(
-            style: ElevatedButton.styleFrom(backgroundColor: Colors.red),
+            style: ElevatedButton.styleFrom(
+              backgroundColor: Colors.red,
+            ),
             onPressed: () async {
               Navigator.pop(ctx);
-              await _service.deletePrescription(id);
-              messenger.showSnackBar(
-                const SnackBar(content: Text("Prescription deleted")),
-              );
+
+              try {
+                await _service.deletePrescription(id);
+
+                messenger.showSnackBar(
+                  const SnackBar(
+                    content: Text("Prescription deleted"),
+                  ),
+                );
+              } catch (e) {
+                messenger.showSnackBar(
+                  const SnackBar(
+                    content: Text(
+                      "Unable to delete prescription.",
+                    ),
+                  ),
+                );
+              }
             },
             child: const Text("Delete"),
           ),
@@ -73,7 +92,6 @@ class _DoctorPrescriptionsScreenState extends State<DoctorPrescriptionsScreen> {
       ),
       body: Column(
         children: [
-          // Search box
           Padding(
             padding: const EdgeInsets.all(16),
             child: TextField(
@@ -82,7 +100,9 @@ class _DoctorPrescriptionsScreenState extends State<DoctorPrescriptionsScreen> {
                 prefixIcon: const Icon(Icons.search),
                 filled: true,
                 fillColor: Colors.white,
-                contentPadding: const EdgeInsets.symmetric(horizontal: 16),
+                contentPadding: const EdgeInsets.symmetric(
+                  horizontal: 16,
+                ),
                 border: OutlineInputBorder(
                   borderRadius: BorderRadius.circular(14),
                   borderSide: BorderSide.none,
@@ -95,35 +115,64 @@ class _DoctorPrescriptionsScreenState extends State<DoctorPrescriptionsScreen> {
               },
             ),
           ),
-
-          // List of Prescriptions
           Expanded(
             child: StreamBuilder<List<PrescriptionModel>>(
-              stream: _service.getAllPrescriptions(),
+              stream: _service.getAssignedPrescriptions(),
               builder: (context, snapshot) {
-                if (snapshot.connectionState == ConnectionState.waiting) {
-                  return const Center(child: CircularProgressIndicator());
+                if (snapshot.connectionState ==
+                    ConnectionState.waiting) {
+                  return const Center(
+                    child: CircularProgressIndicator(),
+                  );
                 }
 
                 if (snapshot.hasError) {
                   return Center(
                     child: Padding(
                       padding: const EdgeInsets.all(20),
-                      child: Text(
-                        "Unable to load prescriptions: ${snapshot.error}",
-                        textAlign: TextAlign.center,
-                        style: const TextStyle(color: Colors.red),
+                      child: Column(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          Icon(
+                            Icons.medication_liquid_outlined,
+                            size: 70,
+                            color: Colors.grey.shade400,
+                          ),
+                          const SizedBox(height: 16),
+                          const Text(
+                            "No Patients Assigned",
+                            style: TextStyle(
+                              fontSize: 20,
+                              fontWeight: FontWeight.bold,
+                            ),
+                          ),
+                          const SizedBox(height: 8),
+                          Text(
+                            "Patients will appear here after they "
+                            "select you as their doctor.",
+                            textAlign: TextAlign.center,
+                            style: TextStyle(
+                              color: Colors.grey.shade600,
+                            ),
+                          ),
+                        ],
                       ),
                     ),
                   );
                 }
 
-                final allPrescriptions = snapshot.data ?? [];
+                final allPrescriptions =
+                    snapshot.data ?? [];
+
                 final prescriptions = _searchQuery.isEmpty
                     ? allPrescriptions
                     : allPrescriptions.where((p) {
-                        return p.patientName.toLowerCase().contains(_searchQuery) ||
-                            p.doctorName.toLowerCase().contains(_searchQuery);
+                        return p.patientName
+                                .toLowerCase()
+                                .contains(_searchQuery) ||
+                            p.doctorName
+                                .toLowerCase()
+                                .contains(_searchQuery);
                       }).toList();
 
                 if (prescriptions.isEmpty) {
@@ -137,9 +186,11 @@ class _DoctorPrescriptionsScreenState extends State<DoctorPrescriptionsScreen> {
                           color: Colors.grey.shade400,
                         ),
                         const SizedBox(height: 16),
-                        const Text(
-                          "No Prescriptions Found",
-                          style: TextStyle(
+                        Text(
+                          _searchQuery.isNotEmpty
+                              ? "No Prescriptions Found"
+                              : "No Prescriptions",
+                          style: const TextStyle(
                             fontSize: 20,
                             fontWeight: FontWeight.bold,
                           ),
@@ -148,8 +199,12 @@ class _DoctorPrescriptionsScreenState extends State<DoctorPrescriptionsScreen> {
                         Text(
                           _searchQuery.isNotEmpty
                               ? "Try adjusting your search criteria."
-                              : "Tap 'New Prescription' to issue a prescription.",
-                          style: const TextStyle(color: Colors.grey),
+                              : "Prescriptions for your assigned patients "
+                                "will appear here.",
+                          textAlign: TextAlign.center,
+                          style: const TextStyle(
+                            color: Colors.grey,
+                          ),
                         ),
                       ],
                     ),
@@ -157,10 +212,15 @@ class _DoctorPrescriptionsScreenState extends State<DoctorPrescriptionsScreen> {
                 }
 
                 return ListView.builder(
-                  padding: const EdgeInsets.only(left: 16, right: 16, bottom: 80),
+                  padding: const EdgeInsets.only(
+                    left: 16,
+                    right: 16,
+                    bottom: 80,
+                  ),
                   itemCount: prescriptions.length,
                   itemBuilder: (context, index) {
                     final rx = prescriptions[index];
+
                     return Card(
                       elevation: 3,
                       margin: const EdgeInsets.only(bottom: 14),
@@ -170,14 +230,17 @@ class _DoctorPrescriptionsScreenState extends State<DoctorPrescriptionsScreen> {
                       child: Padding(
                         padding: const EdgeInsets.all(16),
                         child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
+                          crossAxisAlignment:
+                              CrossAxisAlignment.start,
                           children: [
                             Row(
-                              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                              mainAxisAlignment:
+                                  MainAxisAlignment.spaceBetween,
                               children: [
                                 Expanded(
                                   child: Column(
-                                    crossAxisAlignment: CrossAxisAlignment.start,
+                                    crossAxisAlignment:
+                                        CrossAxisAlignment.start,
                                     children: [
                                       Text(
                                         rx.patientName.isNotEmpty
@@ -185,31 +248,37 @@ class _DoctorPrescriptionsScreenState extends State<DoctorPrescriptionsScreen> {
                                             : "Patient",
                                         style: const TextStyle(
                                           fontSize: 18,
-                                          fontWeight: FontWeight.bold,
+                                          fontWeight:
+                                              FontWeight.bold,
                                         ),
                                       ),
                                       const SizedBox(height: 4),
                                       Text(
-                                        "Prescribed by: ${rx.doctorName}",
+                                        "Prescribed by: "
+                                        "${rx.doctorName}",
                                         style: TextStyle(
                                           fontSize: 13,
-                                          color: Colors.grey.shade700,
+                                          color:
+                                              Colors.grey.shade700,
                                         ),
                                       ),
                                     ],
                                   ),
                                 ),
                                 IconButton(
-                                  icon: const Icon(Icons.delete_outline,
-                                      color: Colors.red),
+                                  icon: const Icon(
+                                    Icons.delete_outline,
+                                    color: Colors.red,
+                                  ),
                                   onPressed: () =>
-                                      _confirmDelete(context, rx.id),
+                                      _confirmDelete(
+                                    context,
+                                    rx.id,
+                                  ),
                                 ),
                               ],
                             ),
-
                             const Divider(height: 20),
-
                             Text(
                               "Medicines (${rx.medicines.length}):",
                               style: const TextStyle(
@@ -219,49 +288,68 @@ class _DoctorPrescriptionsScreenState extends State<DoctorPrescriptionsScreen> {
                               ),
                             ),
                             const SizedBox(height: 8),
-
                             ...rx.medicines.map(
                               (med) => Padding(
-                                padding: const EdgeInsets.only(bottom: 6),
+                                padding:
+                                    const EdgeInsets.only(
+                                  bottom: 6,
+                                ),
                                 child: Container(
-                                  padding: const EdgeInsets.all(10),
+                                  padding:
+                                      const EdgeInsets.all(10),
                                   decoration: BoxDecoration(
-                                    color: Colors.blue.shade50.withAlpha(80),
-                                    borderRadius: BorderRadius.circular(10),
+                                    color: Colors.blue.shade50
+                                        .withAlpha(80),
+                                    borderRadius:
+                                        BorderRadius.circular(10),
                                   ),
                                   child: Row(
-                                    crossAxisAlignment: CrossAxisAlignment.start,
+                                    crossAxisAlignment:
+                                        CrossAxisAlignment.start,
                                     children: [
-                                      const Icon(Icons.circle,
-                                          size: 8, color: Colors.blue),
+                                      const Icon(
+                                        Icons.circle,
+                                        size: 8,
+                                        color: Colors.blue,
+                                      ),
                                       const SizedBox(width: 8),
                                       Expanded(
                                         child: Column(
                                           crossAxisAlignment:
-                                              CrossAxisAlignment.start,
+                                              CrossAxisAlignment
+                                                  .start,
                                           children: [
                                             Text(
                                               med.medicineName,
-                                              style: const TextStyle(
-                                                fontWeight: FontWeight.bold,
+                                              style:
+                                                  const TextStyle(
+                                                fontWeight:
+                                                    FontWeight.bold,
                                                 fontSize: 14,
                                               ),
                                             ),
                                             const SizedBox(height: 2),
                                             Text(
-                                              "Dosage: ${med.dosage}  •  Frequency: ${med.frequency}  •  Duration: ${med.duration}",
+                                              "Dosage: ${med.dosage}  •  "
+                                              "Frequency: ${med.frequency}  •  "
+                                              "Duration: ${med.duration}",
                                               style: TextStyle(
                                                 fontSize: 12,
-                                                color: Colors.grey.shade800,
+                                                color: Colors
+                                                    .grey.shade800,
                                               ),
                                             ),
-                                            if (med.instructions.isNotEmpty)
+                                            if (med.instructions
+                                                .isNotEmpty)
                                               Text(
-                                                "Note: ${med.instructions}",
+                                                "Note: "
+                                                "${med.instructions}",
                                                 style: TextStyle(
                                                   fontSize: 12,
-                                                  fontStyle: FontStyle.italic,
-                                                  color: Colors.blue.shade900,
+                                                  fontStyle:
+                                                      FontStyle.italic,
+                                                  color: Colors
+                                                      .blue.shade900,
                                                 ),
                                               ),
                                           ],
@@ -272,7 +360,6 @@ class _DoctorPrescriptionsScreenState extends State<DoctorPrescriptionsScreen> {
                                 ),
                               ),
                             ),
-
                             if (rx.notes.isNotEmpty) ...[
                               const SizedBox(height: 8),
                               Text(
@@ -283,20 +370,24 @@ class _DoctorPrescriptionsScreenState extends State<DoctorPrescriptionsScreen> {
                                 ),
                               ),
                             ],
-
                             const SizedBox(height: 10),
-
                             Row(
                               children: [
-                                const Icon(Icons.calendar_today,
-                                    size: 14, color: Colors.grey),
+                                const Icon(
+                                  Icons.calendar_today,
+                                  size: 14,
+                                  color: Colors.grey,
+                                ),
                                 const SizedBox(width: 6),
                                 Text(
                                   DateFormat("dd MMM yyyy")
-                                      .format(rx.prescriptionDate),
+                                      .format(
+                                    rx.prescriptionDate,
+                                  ),
                                   style: TextStyle(
                                     fontSize: 12,
-                                    color: Colors.grey.shade600,
+                                    color:
+                                        Colors.grey.shade600,
                                   ),
                                 ),
                               ],

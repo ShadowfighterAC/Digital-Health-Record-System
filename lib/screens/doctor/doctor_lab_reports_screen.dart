@@ -20,6 +20,7 @@ class _DoctorLabReportsScreenState extends State<DoctorLabReportsScreen> {
 
   void _confirmDelete(BuildContext context, String id) {
     final messenger = ScaffoldMessenger.of(context);
+
     showDialog(
       context: context,
       builder: (ctx) => AlertDialog(
@@ -33,13 +34,27 @@ class _DoctorLabReportsScreenState extends State<DoctorLabReportsScreen> {
             child: const Text("Cancel"),
           ),
           ElevatedButton(
-            style: ElevatedButton.styleFrom(backgroundColor: Colors.red),
+            style: ElevatedButton.styleFrom(
+              backgroundColor: Colors.red,
+            ),
             onPressed: () async {
               Navigator.pop(ctx);
-              await _service.deleteLabReport(id);
-              messenger.showSnackBar(
-                const SnackBar(content: Text("Lab report deleted")),
-              );
+
+              try {
+                await _service.deleteLabReport(id);
+
+                messenger.showSnackBar(
+                  const SnackBar(
+                    content: Text("Lab report deleted"),
+                  ),
+                );
+              } catch (e) {
+                messenger.showSnackBar(
+                  SnackBar(
+                    content: Text("Failed to delete lab report: $e"),
+                  ),
+                );
+              }
             },
             child: const Text("Delete"),
           ),
@@ -74,7 +89,6 @@ class _DoctorLabReportsScreenState extends State<DoctorLabReportsScreen> {
       ),
       body: Column(
         children: [
-          // Search box
           Padding(
             padding: const EdgeInsets.all(16),
             child: TextField(
@@ -83,7 +97,9 @@ class _DoctorLabReportsScreenState extends State<DoctorLabReportsScreen> {
                 prefixIcon: const Icon(Icons.search),
                 filled: true,
                 fillColor: Colors.white,
-                contentPadding: const EdgeInsets.symmetric(horizontal: 16),
+                contentPadding: const EdgeInsets.symmetric(
+                  horizontal: 16,
+                ),
                 border: OutlineInputBorder(
                   borderRadius: BorderRadius.circular(14),
                   borderSide: BorderSide.none,
@@ -96,36 +112,48 @@ class _DoctorLabReportsScreenState extends State<DoctorLabReportsScreen> {
               },
             ),
           ),
-
-          // List of Lab Reports
           Expanded(
             child: StreamBuilder<List<LabReportModel>>(
-              stream: _service.getAllLabReports(),
+              stream: _service.getAssignedLabReports(),
               builder: (context, snapshot) {
-                if (snapshot.connectionState == ConnectionState.waiting) {
-                  return const Center(child: CircularProgressIndicator());
+                if (snapshot.connectionState ==
+                    ConnectionState.waiting) {
+                  return const Center(
+                    child: CircularProgressIndicator(),
+                  );
                 }
 
                 if (snapshot.hasError) {
-                  return Center(
+                  return const Center(
                     child: Padding(
-                      padding: const EdgeInsets.all(20),
+                      padding: EdgeInsets.all(20),
                       child: Text(
-                        "Unable to load lab reports: ${snapshot.error}",
+                        "Unable to load lab reports.\n"
+                        "You can only view lab reports of patients "
+                        "currently assigned to you.",
                         textAlign: TextAlign.center,
-                        style: const TextStyle(color: Colors.red),
+                        style: TextStyle(
+                          color: Colors.red,
+                        ),
                       ),
                     ),
                   );
                 }
 
                 final allReports = snapshot.data ?? [];
+
                 final reports = _searchQuery.isEmpty
                     ? allReports
                     : allReports.where((r) {
-                        return r.patientName.toLowerCase().contains(_searchQuery) ||
-                            r.testName.toLowerCase().contains(_searchQuery) ||
-                            r.doctorName.toLowerCase().contains(_searchQuery);
+                        return r.patientName
+                                .toLowerCase()
+                                .contains(_searchQuery) ||
+                            r.testName
+                                .toLowerCase()
+                                .contains(_searchQuery) ||
+                            r.doctorName
+                                .toLowerCase()
+                                .contains(_searchQuery);
                       }).toList();
 
                 if (reports.isEmpty) {
@@ -150,8 +178,11 @@ class _DoctorLabReportsScreenState extends State<DoctorLabReportsScreen> {
                         Text(
                           _searchQuery.isNotEmpty
                               ? "Try adjusting your search criteria."
-                              : "Tap 'New Lab Report' to add test results.",
-                          style: const TextStyle(color: Colors.grey),
+                              : "Lab reports will appear here for your assigned patients.",
+                          style: const TextStyle(
+                            color: Colors.grey,
+                          ),
+                          textAlign: TextAlign.center,
                         ),
                       ],
                     ),
@@ -159,10 +190,15 @@ class _DoctorLabReportsScreenState extends State<DoctorLabReportsScreen> {
                 }
 
                 return ListView.builder(
-                  padding: const EdgeInsets.only(left: 16, right: 16, bottom: 80),
+                  padding: const EdgeInsets.only(
+                    left: 16,
+                    right: 16,
+                    bottom: 80,
+                  ),
                   itemCount: reports.length,
                   itemBuilder: (context, index) {
                     final report = reports[index];
+
                     return Card(
                       elevation: 3,
                       margin: const EdgeInsets.only(bottom: 14),
@@ -175,11 +211,13 @@ class _DoctorLabReportsScreenState extends State<DoctorLabReportsScreen> {
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
                             Row(
-                              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                              mainAxisAlignment:
+                                  MainAxisAlignment.spaceBetween,
                               children: [
                                 Expanded(
                                   child: Column(
-                                    crossAxisAlignment: CrossAxisAlignment.start,
+                                    crossAxisAlignment:
+                                        CrossAxisAlignment.start,
                                     children: [
                                       Text(
                                         report.testName,
@@ -203,16 +241,19 @@ class _DoctorLabReportsScreenState extends State<DoctorLabReportsScreen> {
                                   ),
                                 ),
                                 IconButton(
-                                  icon: const Icon(Icons.delete_outline,
-                                      color: Colors.red),
+                                  icon: const Icon(
+                                    Icons.delete_outline,
+                                    color: Colors.red,
+                                  ),
                                   onPressed: () =>
-                                      _confirmDelete(context, report.id),
+                                      _confirmDelete(
+                                    context,
+                                    report.id,
+                                  ),
                                 ),
                               ],
                             ),
-
                             const SizedBox(height: 10),
-
                             Container(
                               width: double.infinity,
                               padding: const EdgeInsets.all(12),
@@ -224,7 +265,8 @@ class _DoctorLabReportsScreenState extends State<DoctorLabReportsScreen> {
                                 ),
                               ),
                               child: Column(
-                                crossAxisAlignment: CrossAxisAlignment.start,
+                                crossAxisAlignment:
+                                    CrossAxisAlignment.start,
                                 children: [
                                   const Text(
                                     "Result / Diagnostic Finding:",
@@ -245,7 +287,8 @@ class _DoctorLabReportsScreenState extends State<DoctorLabReportsScreen> {
                                   if (report.referenceRange.isNotEmpty) ...[
                                     const SizedBox(height: 6),
                                     Text(
-                                      "Reference Range: ${report.referenceRange}",
+                                      "Reference Range: "
+                                      "${report.referenceRange}",
                                       style: TextStyle(
                                         fontSize: 12,
                                         color: Colors.grey.shade700,
@@ -255,7 +298,6 @@ class _DoctorLabReportsScreenState extends State<DoctorLabReportsScreen> {
                                 ],
                               ),
                             ),
-
                             if (report.remarks.isNotEmpty) ...[
                               const SizedBox(height: 10),
                               Text(
@@ -266,22 +308,23 @@ class _DoctorLabReportsScreenState extends State<DoctorLabReportsScreen> {
                                 ),
                               ),
                             ],
-
                             if (report.attachments.isNotEmpty) ...[
                               AttachmentViewWidget(
                                 attachments: report.attachments,
                               ),
                             ],
-
                             const Divider(height: 20),
-
                             Row(
-                              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                              mainAxisAlignment:
+                                  MainAxisAlignment.spaceBetween,
                               children: [
                                 Row(
                                   children: [
-                                    const Icon(Icons.person_outline,
-                                        size: 14, color: Colors.grey),
+                                    const Icon(
+                                      Icons.person_outline,
+                                      size: 14,
+                                      color: Colors.grey,
+                                    ),
                                     const SizedBox(width: 4),
                                     Text(
                                       report.doctorName,
@@ -294,8 +337,11 @@ class _DoctorLabReportsScreenState extends State<DoctorLabReportsScreen> {
                                 ),
                                 Row(
                                   children: [
-                                    const Icon(Icons.calendar_today,
-                                        size: 14, color: Colors.grey),
+                                    const Icon(
+                                      Icons.calendar_today,
+                                      size: 14,
+                                      color: Colors.grey,
+                                    ),
                                     const SizedBox(width: 4),
                                     Text(
                                       DateFormat("dd MMM yyyy")

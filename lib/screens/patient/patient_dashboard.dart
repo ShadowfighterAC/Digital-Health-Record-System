@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import '../../services/firestore_service.dart';
 import '../../widgets/info_card.dart';
 import '../auth/login_screen.dart';
+import 'choose_doctor_screen.dart';
 import 'patient_records.dart';
 import 'patient_medical_history.dart';
 import 'patient_appointments.dart';
@@ -88,20 +89,32 @@ class _PatientDashboardState extends State<PatientDashboard> {
         borderRadius: BorderRadius.circular(16),
       ),
       child: ListTile(
-        contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
+        contentPadding: const EdgeInsets.symmetric(
+          horizontal: 16,
+          vertical: 4,
+        ),
         leading: CircleAvatar(
           backgroundColor: color.withAlpha(30),
           child: Icon(icon, color: color, size: 24),
         ),
         title: Text(
           title,
-          style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
+          style: const TextStyle(
+            fontWeight: FontWeight.bold,
+            fontSize: 16,
+          ),
         ),
         subtitle: Text(
           subtitle,
-          style: TextStyle(fontSize: 12, color: Colors.grey.shade600),
+          style: TextStyle(
+            fontSize: 12,
+            color: Colors.grey.shade600,
+          ),
         ),
-        trailing: const Icon(Icons.arrow_forward_ios, size: 16),
+        trailing: const Icon(
+          Icons.arrow_forward_ios,
+          size: 16,
+        ),
         onTap: onTap,
       ),
     );
@@ -127,7 +140,10 @@ class _PatientDashboardState extends State<PatientDashboard> {
         centerTitle: true,
         actions: [
           IconButton(
-            icon: const Icon(Icons.account_circle_outlined, size: 28),
+            icon: const Icon(
+              Icons.account_circle_outlined,
+              size: 28,
+            ),
             onPressed: () {
               Navigator.push(
                 context,
@@ -144,13 +160,15 @@ class _PatientDashboardState extends State<PatientDashboard> {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            // Welcome Card
             Container(
               width: double.infinity,
               padding: const EdgeInsets.all(20),
               decoration: BoxDecoration(
                 gradient: const LinearGradient(
-                  colors: [Color(0xFF1976D2), Color(0xFF1565C0)],
+                  colors: [
+                    Color(0xFF1976D2),
+                    Color(0xFF1565C0),
+                  ],
                   begin: Alignment.topLeft,
                   end: Alignment.bottomRight,
                 ),
@@ -196,7 +214,6 @@ class _PatientDashboardState extends State<PatientDashboard> {
 
             const SizedBox(height: 20),
 
-            // Health Summary Title
             const Text(
               "Health Summary",
               style: TextStyle(
@@ -207,7 +224,6 @@ class _PatientDashboardState extends State<PatientDashboard> {
 
             const SizedBox(height: 12),
 
-            // Real-time Firestore Health Stats
             StreamBuilder<PatientDashboardStats>(
               stream: _firestoreService.getPatientStats(uid),
               builder: (context, snapshot) {
@@ -241,7 +257,8 @@ class _PatientDashboardState extends State<PatientDashboard> {
                             Navigator.push(
                               context,
                               MaterialPageRoute(
-                                builder: (_) => const PatientPrescriptions(),
+                                builder: (_) =>
+                                    const PatientPrescriptions(),
                               ),
                             );
                           },
@@ -260,7 +277,8 @@ class _PatientDashboardState extends State<PatientDashboard> {
                             Navigator.push(
                               context,
                               MaterialPageRoute(
-                                builder: (_) => const PatientLabReports(),
+                                builder: (_) =>
+                                    const PatientLabReports(),
                               ),
                             );
                           },
@@ -275,7 +293,8 @@ class _PatientDashboardState extends State<PatientDashboard> {
                             Navigator.push(
                               context,
                               MaterialPageRoute(
-                                builder: (_) => const PatientAppointments(),
+                                builder: (_) =>
+                                    const PatientAppointments(),
                               ),
                             );
                           },
@@ -289,7 +308,6 @@ class _PatientDashboardState extends State<PatientDashboard> {
 
             const SizedBox(height: 24),
 
-            // Quick Actions Section
             const Text(
               "My Health Hub",
               style: TextStyle(
@@ -299,6 +317,21 @@ class _PatientDashboardState extends State<PatientDashboard> {
             ),
 
             const SizedBox(height: 12),
+
+            _buildActionCard(
+              icon: Icons.medical_services_outlined,
+              title: "My Doctor",
+              subtitle: "Choose or change your assigned doctor",
+              color: Colors.red,
+              onTap: () {
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                    builder: (_) => const ChooseDoctorScreen(),
+                  ),
+                );
+              },
+            ),
 
             _buildActionCard(
               icon: Icons.folder_open,
@@ -318,7 +351,8 @@ class _PatientDashboardState extends State<PatientDashboard> {
             _buildActionCard(
               icon: Icons.history_edu,
               title: "Medical History",
-              subtitle: "Previous diagnoses, surgeries, conditions, and allergies",
+              subtitle:
+                  "Previous diagnoses, surgeries, conditions, and allergies",
               color: Colors.teal,
               onTap: () {
                 Navigator.push(
@@ -333,7 +367,8 @@ class _PatientDashboardState extends State<PatientDashboard> {
             _buildActionCard(
               icon: Icons.calendar_today,
               title: "My Appointments",
-              subtitle: "Check upcoming and past consultation dates",
+              subtitle:
+                  "Check upcoming and past consultation dates",
               color: Colors.purple,
               onTap: () {
                 Navigator.push(
@@ -348,7 +383,8 @@ class _PatientDashboardState extends State<PatientDashboard> {
             _buildActionCard(
               icon: Icons.medication,
               title: "Prescriptions & Medicines",
-              subtitle: "Active medicines, dosages, and doctor advice",
+              subtitle:
+                  "Active medicines, dosages, and doctor advice",
               color: Colors.green,
               onTap: () {
                 Navigator.push(
@@ -363,7 +399,8 @@ class _PatientDashboardState extends State<PatientDashboard> {
             _buildActionCard(
               icon: Icons.science,
               title: "Lab & Diagnostic Reports",
-              subtitle: "Review clinical test results and remarks",
+              subtitle:
+                  "Review clinical test results and remarks",
               color: Colors.orange,
               onTap: () {
                 Navigator.push(
@@ -378,7 +415,8 @@ class _PatientDashboardState extends State<PatientDashboard> {
             _buildActionCard(
               icon: Icons.person_outline,
               title: "My Profile",
-              subtitle: "Account details and personal information",
+              subtitle:
+                  "Account details and personal information",
               color: Colors.indigo,
               onTap: () {
                 Navigator.push(
@@ -407,7 +445,10 @@ class _PatientDashboardState extends State<PatientDashboard> {
                 icon: const Icon(Icons.logout),
                 label: const Text(
                   "Logout",
-                  style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+                  style: TextStyle(
+                    fontSize: 16,
+                    fontWeight: FontWeight.bold,
+                  ),
                 ),
               ),
             ),

@@ -43,6 +43,7 @@ class _DoctorMedicalHistoryScreenState
 
   void _confirmDelete(BuildContext context, MedicalHistoryModel history) {
     final messenger = ScaffoldMessenger.of(context);
+
     showDialog(
       context: context,
       builder: (ctx) => AlertDialog(
@@ -56,13 +57,27 @@ class _DoctorMedicalHistoryScreenState
             child: const Text("Cancel"),
           ),
           ElevatedButton(
-            style: ElevatedButton.styleFrom(backgroundColor: Colors.red),
+            style: ElevatedButton.styleFrom(
+              backgroundColor: Colors.red,
+            ),
             onPressed: () async {
               Navigator.pop(ctx);
-              await _service.deleteHistory(history);
-              messenger.showSnackBar(
-                const SnackBar(content: Text("Medical history entry deleted")),
-              );
+
+              try {
+                await _service.deleteHistory(history);
+
+                messenger.showSnackBar(
+                  const SnackBar(
+                    content: Text("Medical history entry deleted"),
+                  ),
+                );
+              } catch (e) {
+                messenger.showSnackBar(
+                  SnackBar(
+                    content: Text("Failed to delete medical history: $e"),
+                  ),
+                );
+              }
             },
             child: const Text("Delete"),
           ),
@@ -97,7 +112,6 @@ class _DoctorMedicalHistoryScreenState
       ),
       body: Column(
         children: [
-          // Search Bar
           Padding(
             padding: const EdgeInsets.all(16),
             child: TextField(
@@ -106,7 +120,9 @@ class _DoctorMedicalHistoryScreenState
                 prefixIcon: const Icon(Icons.search),
                 filled: true,
                 fillColor: Colors.white,
-                contentPadding: const EdgeInsets.symmetric(horizontal: 16),
+                contentPadding: const EdgeInsets.symmetric(
+                  horizontal: 16,
+                ),
                 border: OutlineInputBorder(
                   borderRadius: BorderRadius.circular(14),
                   borderSide: BorderSide.none,
@@ -119,40 +135,48 @@ class _DoctorMedicalHistoryScreenState
               },
             ),
           ),
-
-          // Stream of medical history
           Expanded(
             child: StreamBuilder<List<MedicalHistoryModel>>(
-              stream: _service.getAllHistory(),
+              stream: _service.getAssignedHistory(),
               builder: (context, snapshot) {
-                if (snapshot.connectionState == ConnectionState.waiting) {
-                  return const Center(child: CircularProgressIndicator());
+                if (snapshot.connectionState ==
+                    ConnectionState.waiting) {
+                  return const Center(
+                    child: CircularProgressIndicator(),
+                  );
                 }
 
                 if (snapshot.hasError) {
-                  return Center(
+                  return const Center(
                     child: Padding(
-                      padding: const EdgeInsets.all(20),
+                      padding: EdgeInsets.all(20),
                       child: Text(
-                        "Unable to load medical history: ${snapshot.error}",
+                        "Unable to load medical history.\n"
+                        "You can only view medical history of patients "
+                        "currently assigned to you.",
                         textAlign: TextAlign.center,
-                        style: const TextStyle(color: Colors.red),
+                        style: TextStyle(
+                          color: Colors.red,
+                        ),
                       ),
                     ),
                   );
                 }
 
                 final allEntries = snapshot.data ?? [];
+
                 final entries = allEntries.where((h) {
                   final matchesCategory = _selectedCategory == "All" ||
                       h.category.toLowerCase() ==
                           _selectedCategory.toLowerCase();
+
                   final matchesSearch = _searchQuery.isEmpty ||
                       h.title.toLowerCase().contains(_searchQuery) ||
                       h.category.toLowerCase().contains(_searchQuery) ||
                       h.description.toLowerCase().contains(_searchQuery) ||
                       h.notes.toLowerCase().contains(_searchQuery) ||
                       h.doctorName.toLowerCase().contains(_searchQuery);
+
                   return matchesCategory && matchesSearch;
                 }).toList();
 
@@ -178,8 +202,11 @@ class _DoctorMedicalHistoryScreenState
                         Text(
                           _searchQuery.isNotEmpty
                               ? "Try adjusting your search criteria."
-                              : "Tap 'Add History' to record patient history.",
-                          style: const TextStyle(color: Colors.grey),
+                              : "Medical history will appear here for your assigned patients.",
+                          style: const TextStyle(
+                            color: Colors.grey,
+                          ),
+                          textAlign: TextAlign.center,
                         ),
                       ],
                     ),
@@ -187,12 +214,16 @@ class _DoctorMedicalHistoryScreenState
                 }
 
                 return ListView.builder(
-                  padding:
-                      const EdgeInsets.only(left: 16, right: 16, bottom: 80),
+                  padding: const EdgeInsets.only(
+                    left: 16,
+                    right: 16,
+                    bottom: 80,
+                  ),
                   itemCount: entries.length,
                   itemBuilder: (context, index) {
                     final history = entries[index];
-                    final catColor = _getCategoryColor(history.category);
+                    final catColor =
+                        _getCategoryColor(history.category);
 
                     return Card(
                       elevation: 3,
@@ -203,19 +234,23 @@ class _DoctorMedicalHistoryScreenState
                       child: Padding(
                         padding: const EdgeInsets.all(16),
                         child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
+                          crossAxisAlignment:
+                              CrossAxisAlignment.start,
                           children: [
                             Row(
-                              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                              mainAxisAlignment:
+                                  MainAxisAlignment.spaceBetween,
                               children: [
                                 Container(
-                                  padding: const EdgeInsets.symmetric(
+                                  padding:
+                                      const EdgeInsets.symmetric(
                                     horizontal: 10,
                                     vertical: 4,
                                   ),
                                   decoration: BoxDecoration(
                                     color: catColor.withAlpha(30),
-                                    borderRadius: BorderRadius.circular(20),
+                                    borderRadius:
+                                        BorderRadius.circular(20),
                                     border: Border.all(
                                       color: catColor.withAlpha(90),
                                     ),
@@ -230,10 +265,16 @@ class _DoctorMedicalHistoryScreenState
                                   ),
                                 ),
                                 IconButton(
-                                  icon: const Icon(Icons.delete_outline,
-                                      color: Colors.red, size: 20),
+                                  icon: const Icon(
+                                    Icons.delete_outline,
+                                    color: Colors.red,
+                                    size: 20,
+                                  ),
                                   onPressed: () =>
-                                      _confirmDelete(context, history),
+                                      _confirmDelete(
+                                    context,
+                                    history,
+                                  ),
                                 ),
                               ],
                             ),
@@ -248,8 +289,11 @@ class _DoctorMedicalHistoryScreenState
                             const SizedBox(height: 4),
                             Row(
                               children: [
-                                const Icon(Icons.calendar_today,
-                                    size: 14, color: Colors.grey),
+                                const Icon(
+                                  Icons.calendar_today,
+                                  size: 14,
+                                  color: Colors.grey,
+                                ),
                                 const SizedBox(width: 4),
                                 Text(
                                   DateFormat("dd MMM yyyy")
@@ -260,14 +304,18 @@ class _DoctorMedicalHistoryScreenState
                                   ),
                                 ),
                                 const SizedBox(width: 12),
-                                const Icon(Icons.medical_services_outlined,
-                                    size: 14, color: Colors.grey),
+                                const Icon(
+                                  Icons.medical_services_outlined,
+                                  size: 14,
+                                  color: Colors.grey,
+                                ),
                                 const SizedBox(width: 4),
                                 Expanded(
                                   child: Text(
                                     history.doctorName,
                                     maxLines: 1,
-                                    overflow: TextOverflow.ellipsis,
+                                    overflow:
+                                        TextOverflow.ellipsis,
                                     style: TextStyle(
                                       fontSize: 12,
                                       color: Colors.grey.shade700,
@@ -293,7 +341,8 @@ class _DoctorMedicalHistoryScreenState
                                 padding: const EdgeInsets.all(10),
                                 decoration: BoxDecoration(
                                   color: Colors.grey.shade100,
-                                  borderRadius: BorderRadius.circular(8),
+                                  borderRadius:
+                                      BorderRadius.circular(8),
                                 ),
                                 child: Text(
                                   "Notes: ${history.notes}",

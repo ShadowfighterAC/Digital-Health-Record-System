@@ -1,3 +1,4 @@
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 
 import '../../models/patient_model.dart';
@@ -136,6 +137,8 @@ class _PatientListScreenState extends State<PatientListScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final doctorId = FirebaseAuth.instance.currentUser?.uid;
+
     return Scaffold(
       backgroundColor: const Color(0xFFF5F7FA),
       appBar: AppBar(
@@ -144,7 +147,6 @@ class _PatientListScreenState extends State<PatientListScreen> {
       ),
       body: Column(
         children: [
-          // Search box
           Padding(
             padding: const EdgeInsets.all(16),
             child: TextField(
@@ -166,124 +168,168 @@ class _PatientListScreenState extends State<PatientListScreen> {
               },
             ),
           ),
-
           Expanded(
-            child: StreamBuilder<List<PatientModel>>(
-              stream: _firestoreService.getPatients(),
-              builder: (context, snapshot) {
-                if (snapshot.connectionState == ConnectionState.waiting) {
-                  return const Center(
-                    child: CircularProgressIndicator(),
-                  );
-                }
-
-                if (snapshot.hasError) {
-                  return Center(
-                    child: Padding(
-                      padding: const EdgeInsets.all(20),
-                      child: Text(
-                        "Error loading patients: ${snapshot.error}",
-                        style: const TextStyle(color: Colors.red),
-                      ),
+            child: doctorId == null
+                ? const Center(
+                    child: Text(
+                      "Please log in again to view your patients.",
+                      textAlign: TextAlign.center,
                     ),
-                  );
-                }
+                  )
+                : StreamBuilder<List<PatientModel>>(
+                    stream: _firestoreService.getAssignedPatients(doctorId),
+                    builder: (context, snapshot) {
+                      if (snapshot.connectionState ==
+                          ConnectionState.waiting) {
+                        return const Center(
+                          child: CircularProgressIndicator(),
+                        );
+                      }
 
-                final allPatients = snapshot.data ?? [];
-                final patients = _searchQuery.isEmpty
-                    ? allPatients
-                    : allPatients.where((p) {
-                        return p.name.toLowerCase().contains(_searchQuery) ||
-                            p.email.toLowerCase().contains(_searchQuery);
-                      }).toList();
-
-                if (patients.isEmpty) {
-                  return Center(
-                    child: Column(
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      children: [
-                        Icon(
-                          Icons.people_outline,
-                          size: 70,
-                          color: Colors.grey.shade400,
-                        ),
-                        const SizedBox(height: 16),
-                        const Text(
-                          "No Patients Found",
-                          style: TextStyle(
-                            fontSize: 20,
-                            fontWeight: FontWeight.bold,
-                          ),
-                        ),
-                        const SizedBox(height: 8),
-                        Text(
-                          _searchQuery.isNotEmpty
-                              ? "Try adjusting your search criteria."
-                              : "Registered patients will appear here.",
-                          style: const TextStyle(color: Colors.grey),
-                        ),
-                      ],
-                    ),
-                  );
-                }
-
-                return ListView.builder(
-                  padding: const EdgeInsets.only(left: 16, right: 16, bottom: 20),
-                  itemCount: patients.length,
-                  itemBuilder: (context, index) {
-                    final patient = patients[index];
-
-                    return Card(
-                      elevation: 3,
-                      margin: const EdgeInsets.only(bottom: 12),
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(16),
-                      ),
-                      child: ListTile(
-                        contentPadding: const EdgeInsets.symmetric(
-                          horizontal: 16,
-                          vertical: 6,
-                        ),
-                        leading: CircleAvatar(
-                          radius: 24,
-                          backgroundColor: Colors.blue.shade100,
-                          child: Text(
-                            patient.name.isNotEmpty
-                                ? patient.name[0].toUpperCase()
-                                : "P",
-                            style: const TextStyle(
-                              fontSize: 18,
-                              fontWeight: FontWeight.bold,
-                              color: Colors.blue,
+                      if (snapshot.hasError) {
+                        return Center(
+                          child: Padding(
+                            padding: const EdgeInsets.all(20),
+                            child: Column(
+                              mainAxisAlignment: MainAxisAlignment.center,
+                              children: [
+                                Icon(
+                                  Icons.people_outline,
+                                  size: 70,
+                                  color: Colors.grey.shade400,
+                                ),
+                                const SizedBox(height: 16),
+                                const Text(
+                                  "No Patients Assigned",
+                                  style: TextStyle(
+                                    fontSize: 20,
+                                    fontWeight: FontWeight.bold,
+                                  ),
+                                ),
+                                const SizedBox(height: 8),
+                                Text(
+                                  "Patients will appear here after they select you as their doctor.",
+                                  textAlign: TextAlign.center,
+                                  style: TextStyle(
+                                    color: Colors.grey.shade600,
+                                    fontSize: 14,
+                                  ),
+                                ),
+                              ],
                             ),
                           ),
-                        ),
-                        title: Text(
-                          patient.name,
-                          style: const TextStyle(
-                            fontWeight: FontWeight.bold,
-                            fontSize: 16,
+                        );
+                      }
+
+                      final allPatients = snapshot.data ?? [];
+
+                      final patients = _searchQuery.isEmpty
+                          ? allPatients
+                          : allPatients.where((p) {
+                              return p.name
+                                      .toLowerCase()
+                                      .contains(_searchQuery) ||
+                                  p.email
+                                      .toLowerCase()
+                                      .contains(_searchQuery);
+                            }).toList();
+
+                      if (patients.isEmpty) {
+                        return Center(
+                          child: Column(
+                            mainAxisAlignment: MainAxisAlignment.center,
+                            children: [
+                              Icon(
+                                Icons.people_outline,
+                                size: 70,
+                                color: Colors.grey.shade400,
+                              ),
+                              const SizedBox(height: 16),
+                              Text(
+                                _searchQuery.isNotEmpty
+                                    ? "No Patients Found"
+                                    : "No Patients Assigned",
+                                style: const TextStyle(
+                                  fontSize: 20,
+                                  fontWeight: FontWeight.bold,
+                                ),
+                              ),
+                              const SizedBox(height: 8),
+                              Text(
+                                _searchQuery.isNotEmpty
+                                    ? "Try adjusting your search criteria."
+                                    : "Patients will appear here after they select you as their doctor.",
+                                textAlign: TextAlign.center,
+                                style: const TextStyle(
+                                  color: Colors.grey,
+                                ),
+                              ),
+                            ],
                           ),
+                        );
+                      }
+
+                      return ListView.builder(
+                        padding: const EdgeInsets.only(
+                          left: 16,
+                          right: 16,
+                          bottom: 20,
                         ),
-                        subtitle: Text(
-                          patient.email,
-                          style: TextStyle(
-                            fontSize: 13,
-                            color: Colors.grey.shade700,
-                          ),
-                        ),
-                        trailing: const Icon(
-                          Icons.arrow_forward_ios,
-                          size: 16,
-                          color: Colors.grey,
-                        ),
-                        onTap: () => _handlePatientSelected(patient),
-                      ),
-                    );
-                  },
-                );
-              },
-            ),
+                        itemCount: patients.length,
+                        itemBuilder: (context, index) {
+                          final patient = patients[index];
+
+                          return Card(
+                            elevation: 3,
+                            margin: const EdgeInsets.only(bottom: 12),
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(16),
+                            ),
+                            child: ListTile(
+                              contentPadding: const EdgeInsets.symmetric(
+                                horizontal: 16,
+                                vertical: 6,
+                              ),
+                              leading: CircleAvatar(
+                                radius: 24,
+                                backgroundColor: Colors.blue.shade100,
+                                child: Text(
+                                  patient.name.isNotEmpty
+                                      ? patient.name[0].toUpperCase()
+                                      : "P",
+                                  style: const TextStyle(
+                                    fontSize: 18,
+                                    fontWeight: FontWeight.bold,
+                                    color: Colors.blue,
+                                  ),
+                                ),
+                              ),
+                              title: Text(
+                                patient.name,
+                                style: const TextStyle(
+                                  fontWeight: FontWeight.bold,
+                                  fontSize: 16,
+                                ),
+                              ),
+                              subtitle: Text(
+                                patient.email,
+                                style: TextStyle(
+                                  fontSize: 13,
+                                  color: Colors.grey.shade700,
+                                ),
+                              ),
+                              trailing: const Icon(
+                                Icons.arrow_forward_ios,
+                                size: 16,
+                                color: Colors.grey,
+                              ),
+                              onTap: () => _handlePatientSelected(patient),
+                            ),
+                          );
+                        },
+                      );
+                    },
+                  ),
           ),
         ],
       ),

@@ -45,6 +45,7 @@ class _DoctorAppointmentsScreenState extends State<DoctorAppointmentsScreen>
 
   void _showStatusDialog(BuildContext context, AppointmentModel appt) {
     final messenger = ScaffoldMessenger.of(context);
+
     showDialog(
       context: context,
       builder: (ctx) => AlertDialog(
@@ -62,13 +63,25 @@ class _DoctorAppointmentsScreenState extends State<DoctorAppointmentsScreen>
               title: Text(st),
               onTap: () async {
                 Navigator.pop(ctx);
-                await _service.updateAppointmentStatus(appt.id, st);
-                messenger.showSnackBar(
-                  SnackBar(
-                    content: Text("Appointment marked as $st"),
-                    backgroundColor: _getStatusColor(st),
-                  ),
-                );
+
+                try {
+                  await _service.updateAppointmentStatus(appt.id, st);
+
+                  messenger.showSnackBar(
+                    SnackBar(
+                      content: Text("Appointment marked as $st"),
+                      backgroundColor: _getStatusColor(st),
+                    ),
+                  );
+                } catch (e) {
+                  messenger.showSnackBar(
+                    const SnackBar(
+                      content: Text(
+                        "Unable to update appointment status.",
+                      ),
+                    ),
+                  );
+                }
               },
             );
           }).toList(),
@@ -85,24 +98,43 @@ class _DoctorAppointmentsScreenState extends State<DoctorAppointmentsScreen>
 
   void _confirmDelete(BuildContext context, String id) {
     final messenger = ScaffoldMessenger.of(context);
+
     showDialog(
       context: context,
       builder: (ctx) => AlertDialog(
         title: const Text("Delete Appointment"),
-        content: const Text("Are you sure you want to delete this appointment?"),
+        content: const Text(
+          "Are you sure you want to delete this appointment?",
+        ),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(ctx),
             child: const Text("Cancel"),
           ),
           ElevatedButton(
-            style: ElevatedButton.styleFrom(backgroundColor: Colors.red),
+            style: ElevatedButton.styleFrom(
+              backgroundColor: Colors.red,
+            ),
             onPressed: () async {
               Navigator.pop(ctx);
-              await _service.deleteAppointment(id);
-              messenger.showSnackBar(
-                const SnackBar(content: Text("Appointment deleted")),
-              );
+
+              try {
+                await _service.deleteAppointment(id);
+
+                messenger.showSnackBar(
+                  const SnackBar(
+                    content: Text("Appointment deleted"),
+                  ),
+                );
+              } catch (e) {
+                messenger.showSnackBar(
+                  const SnackBar(
+                    content: Text(
+                      "Unable to delete appointment.",
+                    ),
+                  ),
+                );
+              }
             },
             child: const Text("Delete"),
           ),
@@ -132,7 +164,8 @@ class _DoctorAppointmentsScreenState extends State<DoctorAppointmentsScreen>
             ),
             const SizedBox(height: 8),
             const Text(
-              "Tap 'Schedule' to create a new appointment.",
+              "Appointments for your assigned patients will appear here.",
+              textAlign: TextAlign.center,
               style: TextStyle(color: Colors.grey),
             ),
           ],
@@ -141,7 +174,12 @@ class _DoctorAppointmentsScreenState extends State<DoctorAppointmentsScreen>
     }
 
     return ListView.builder(
-      padding: const EdgeInsets.only(left: 16, right: 16, top: 16, bottom: 80),
+      padding: const EdgeInsets.only(
+        left: 16,
+        right: 16,
+        top: 16,
+        bottom: 80,
+      ),
       itemCount: appointments.length,
       itemBuilder: (context, index) {
         final appt = appointments[index];
@@ -175,11 +213,15 @@ class _DoctorAppointmentsScreenState extends State<DoctorAppointmentsScreen>
                       onTap: () => _showStatusDialog(context, appt),
                       child: Container(
                         padding: const EdgeInsets.symmetric(
-                            horizontal: 12, vertical: 6),
+                          horizontal: 12,
+                          vertical: 6,
+                        ),
                         decoration: BoxDecoration(
                           color: statusColor.withAlpha(30),
                           borderRadius: BorderRadius.circular(20),
-                          border: Border.all(color: statusColor),
+                          border: Border.all(
+                            color: statusColor,
+                          ),
                         ),
                         child: Row(
                           mainAxisSize: MainAxisSize.min,
@@ -193,58 +235,68 @@ class _DoctorAppointmentsScreenState extends State<DoctorAppointmentsScreen>
                               ),
                             ),
                             const SizedBox(width: 4),
-                            Icon(Icons.arrow_drop_down,
-                                size: 16, color: statusColor),
+                            Icon(
+                              Icons.arrow_drop_down,
+                              size: 16,
+                              color: statusColor,
+                            ),
                           ],
                         ),
                       ),
                     ),
                   ],
                 ),
-
                 const SizedBox(height: 12),
-
                 Row(
                   children: [
-                    const Icon(Icons.person_outline,
-                        size: 18, color: Colors.blue),
+                    const Icon(
+                      Icons.person_outline,
+                      size: 18,
+                      color: Colors.blue,
+                    ),
                     const SizedBox(width: 8),
                     Expanded(
                       child: Text(
                         appt.patientName.isNotEmpty
                             ? "Patient: ${appt.patientName}"
                             : "Patient Appointment",
-                        style: const TextStyle(fontWeight: FontWeight.w500),
+                        style: const TextStyle(
+                          fontWeight: FontWeight.w500,
+                        ),
                       ),
                     ),
                   ],
                 ),
-
                 const SizedBox(height: 8),
-
                 Row(
                   children: [
-                    const Icon(Icons.medical_services_outlined,
-                        size: 18, color: Colors.grey),
+                    const Icon(
+                      Icons.medical_services_outlined,
+                      size: 18,
+                      color: Colors.grey,
+                    ),
                     const SizedBox(width: 8),
                     Expanded(
                       child: Text(
                         "Doctor: ${appt.doctorName}",
-                        style: TextStyle(color: Colors.grey.shade800),
+                        style: TextStyle(
+                          color: Colors.grey.shade800,
+                        ),
                       ),
                     ),
                   ],
                 ),
-
                 const Divider(height: 22),
-
                 Row(
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
                     Row(
                       children: [
-                        const Icon(Icons.calendar_today,
-                            size: 16, color: Colors.grey),
+                        const Icon(
+                          Icons.calendar_today,
+                          size: 16,
+                          color: Colors.grey,
+                        ),
                         const SizedBox(width: 6),
                         Text(
                           DateFormat("dd MMM yyyy")
@@ -256,8 +308,11 @@ class _DoctorAppointmentsScreenState extends State<DoctorAppointmentsScreen>
                           ),
                         ),
                         const SizedBox(width: 14),
-                        const Icon(Icons.access_time,
-                            size: 16, color: Colors.grey),
+                        const Icon(
+                          Icons.access_time,
+                          size: 16,
+                          color: Colors.grey,
+                        ),
                         const SizedBox(width: 6),
                         Text(
                           appt.appointmentTime,
@@ -270,9 +325,13 @@ class _DoctorAppointmentsScreenState extends State<DoctorAppointmentsScreen>
                       ],
                     ),
                     IconButton(
-                      icon: const Icon(Icons.delete_outline,
-                          size: 20, color: Colors.red),
-                      onPressed: () => _confirmDelete(context, appt.id),
+                      icon: const Icon(
+                        Icons.delete_outline,
+                        size: 20,
+                        color: Colors.red,
+                      ),
+                      onPressed: () =>
+                          _confirmDelete(context, appt.id),
                     ),
                   ],
                 ),
@@ -322,30 +381,67 @@ class _DoctorAppointmentsScreenState extends State<DoctorAppointmentsScreen>
         },
       ),
       body: StreamBuilder<List<AppointmentModel>>(
-        stream: _service.getAllAppointments(),
+        stream: _service.getAssignedAppointments(),
         builder: (context, snapshot) {
           if (snapshot.connectionState == ConnectionState.waiting) {
-            return const Center(child: CircularProgressIndicator());
+            return const Center(
+              child: CircularProgressIndicator(),
+            );
           }
 
           if (snapshot.hasError) {
             return Center(
-              child: Text(
-                "Error loading appointments: ${snapshot.error}",
-                style: const TextStyle(color: Colors.red),
+              child: Padding(
+                padding: const EdgeInsets.all(24),
+                child: Column(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    Icon(
+                      Icons.calendar_month_outlined,
+                      size: 70,
+                      color: Colors.grey.shade400,
+                    ),
+                    const SizedBox(height: 16),
+                    const Text(
+                      "No Patients Assigned",
+                      style: TextStyle(
+                        fontSize: 20,
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+                    const SizedBox(height: 8),
+                    Text(
+                      "Appointments will appear here after patients "
+                      "select you as their doctor.",
+                      textAlign: TextAlign.center,
+                      style: TextStyle(
+                        color: Colors.grey.shade600,
+                      ),
+                    ),
+                  ],
+                ),
               ),
             );
           }
 
           final all = snapshot.data ?? [];
+
           final scheduled = all
-              .where((a) => a.status == AppConstants.statusScheduled)
+              .where(
+                (a) => a.status == AppConstants.statusScheduled,
+              )
               .toList();
+
           final completed = all
-              .where((a) => a.status == AppConstants.statusCompleted)
+              .where(
+                (a) => a.status == AppConstants.statusCompleted,
+              )
               .toList();
+
           final cancelled = all
-              .where((a) => a.status == AppConstants.statusCancelled)
+              .where(
+                (a) => a.status == AppConstants.statusCancelled,
+              )
               .toList();
 
           return TabBarView(

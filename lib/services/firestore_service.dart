@@ -1,4 +1,5 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 
 import '../models/patient_model.dart';
 import '../models/user_model.dart';
@@ -34,6 +35,7 @@ class DoctorDashboardStats {
 
 class FirestoreService {
   final FirebaseFirestore _firestore = FirebaseFirestore.instance;
+  final FirebaseAuth _auth = FirebaseAuth.instance;
 
   Future<Map<String, dynamic>?> getUser(String uid) async {
     DocumentSnapshot doc =
@@ -68,6 +70,56 @@ class FirestoreService {
               )
               .toList(),
         );
+  }
+
+  /// Get all registered doctors for patient doctor selection
+  Stream<List<UserModel>> getDoctors() {
+    return _firestore
+        .collection(AppConstants.usersCollection)
+        .where("role", isEqualTo: AppConstants.roleDoctor)
+        .snapshots()
+        .map(
+          (snapshot) => snapshot.docs
+              .map(
+                (doc) => UserModel.fromMap(
+                  doc.data(),
+                  doc.id,
+                ),
+              )
+              .toList(),
+        );
+  }
+
+  /// Get patients currently assigned to a specific doctor
+  Stream<List<PatientModel>> getAssignedPatients(String doctorId) {
+    return _firestore
+        .collection(AppConstants.usersCollection)
+        .where("role", isEqualTo: AppConstants.rolePatient)
+        .where("currentDoctorId", isEqualTo: doctorId)
+        .snapshots()
+        .map(
+          (snapshot) => snapshot.docs
+              .map(
+                (doc) => PatientModel.fromMap(
+                  doc.data(),
+                  doc.id,
+                ),
+              )
+              .toList(),
+        );
+  }
+
+  /// Update the current doctor assigned to a patient
+  Future<void> updateCurrentDoctor(
+    String patientId,
+    String doctorId,
+  ) async {
+    await _firestore
+        .collection(AppConstants.usersCollection)
+        .doc(patientId)
+        .update({
+      'currentDoctorId': doctorId,
+    });
   }
 
   /// Update user profile details safely (never altering role)
@@ -118,9 +170,16 @@ class FirestoreService {
 
   /// Stream of doctor dashboard stats
   Stream<DoctorDashboardStats> getDoctorStats() {
+    final currentDoctorId = _auth.currentUser?.uid;
+
+    if (currentDoctorId == null) {
+      return Stream.value(DoctorDashboardStats());
+    }
+
     final patientsStream = _firestore
         .collection(AppConstants.usersCollection)
         .where("role", isEqualTo: AppConstants.rolePatient)
+        .where("currentDoctorId", isEqualTo: currentDoctorId)
         .snapshots();
 
     final appointmentsStream =
