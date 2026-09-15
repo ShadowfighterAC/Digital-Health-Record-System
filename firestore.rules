@@ -48,7 +48,6 @@ service cloud.firestore {
 
 
       // User can create their own account document during registration.
-      // Keep this compatible with the existing registration flow.
       // Only the two application roles are accepted.
       allow create: if isOwner(userId) &&
         request.resource.data.role in ["Doctor", "Patient"];
@@ -108,9 +107,19 @@ service cloud.firestore {
          resource.data.patientId == request.auth.uid)
         || isAssignedDoctor(resource.data.patientId);
 
-      // Only the assigned doctor can create an appointment.
+      // Assigned doctor or the patient themselves can create an appointment.
+      // Patients can only book with their currently assigned doctor.
       allow create: if
-        isAssignedDoctor(request.resource.data.patientId);
+        isAssignedDoctor(request.resource.data.patientId)
+        ||
+        (
+          isPatient() &&
+          request.resource.data.patientId == request.auth.uid &&
+          request.resource.data.doctorId ==
+            get(/databases/$(database)/documents/users/$(request.auth.uid)).data.currentDoctorId &&
+          validDoctor(request.resource.data.doctorId) &&
+          request.resource.data.status == "Scheduled"
+        );
 
       // Only the assigned doctor can delete an appointment.
       allow delete: if

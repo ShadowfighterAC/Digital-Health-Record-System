@@ -15,6 +15,73 @@ class AppointmentService {
     await _firestore.collection(collection).add(appointment.toMap());
   }
 
+  /// Book an appointment for the currently logged-in patient
+  /// with their currently assigned doctor.
+  Future<void> bookPatientAppointment({
+    required DateTime appointmentDate,
+    required String appointmentTime,
+    required String reason,
+  }) async {
+    final patient = _auth.currentUser;
+
+    if (patient == null) {
+      throw Exception("You must be logged in to book an appointment.");
+    }
+
+    final patientDoc = await _firestore
+        .collection(AppConstants.usersCollection)
+        .doc(patient.uid)
+        .get();
+
+    if (!patientDoc.exists || patientDoc.data() == null) {
+      throw Exception("Patient profile not found.");
+    }
+
+    final patientData = patientDoc.data()!;
+
+    if (patientData["role"] != AppConstants.rolePatient) {
+      throw Exception("Only patients can book appointments.");
+    }
+
+    final doctorId = patientData["currentDoctorId"];
+
+    if (doctorId == null || doctorId.toString().isEmpty) {
+      throw Exception(
+        "Please choose a doctor before booking an appointment.",
+      );
+    }
+
+    final doctorDoc = await _firestore
+        .collection(AppConstants.usersCollection)
+        .doc(doctorId)
+        .get();
+
+    if (!doctorDoc.exists || doctorDoc.data() == null) {
+      throw Exception("Assigned doctor could not be found.");
+    }
+
+    final doctorData = doctorDoc.data()!;
+
+    if (doctorData["role"] != AppConstants.roleDoctor) {
+      throw Exception("The assigned doctor is invalid.");
+    }
+
+    final appointment = AppointmentModel(
+      id: "",
+      patientId: patient.uid,
+      patientName: patientData["name"] ?? "",
+      doctorId: doctorId,
+      doctorName: doctorData["name"] ?? "",
+      appointmentDate: appointmentDate,
+      appointmentTime: appointmentTime,
+      reason: reason.trim(),
+      status: "Scheduled",
+      createdAt: Timestamp.now(),
+    );
+
+    await addAppointment(appointment);
+  }
+
   /// Get Appointments for a Patient
   Stream<List<AppointmentModel>> getPatientAppointments(
     String patientId,
@@ -94,8 +161,11 @@ class AppointmentService {
         );
   }
 
-  /// Update Appointment Status (Scheduled, Completed, Cancelled)
-  Future<void> updateAppointmentStatus(String id, String status) async {
+  /// Update Appointment Status
+  Future<void> updateAppointmentStatus(
+    String id,
+    String status,
+  ) async {
     await _firestore.collection(collection).doc(id).update({
       'status': status,
     });

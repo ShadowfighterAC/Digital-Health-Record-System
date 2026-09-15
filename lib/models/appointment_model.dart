@@ -4,6 +4,7 @@ class AppointmentModel {
   final String id;
   final String patientId;
   final String patientName;
+  final String doctorId;
   final String doctorName;
   final DateTime appointmentDate;
   final String appointmentTime;
@@ -15,6 +16,7 @@ class AppointmentModel {
     required this.id,
     required this.patientId,
     this.patientName = "",
+    this.doctorId = "",
     required this.doctorName,
     required this.appointmentDate,
     required this.appointmentTime,
@@ -27,6 +29,7 @@ class AppointmentModel {
     return {
       "patientId": patientId,
       "patientName": patientName,
+      "doctorId": doctorId,
       "doctorName": doctorName,
       "appointmentDate": Timestamp.fromDate(appointmentDate),
       "appointmentTime": appointmentTime,
@@ -44,6 +47,7 @@ class AppointmentModel {
       id: id,
       patientId: map["patientId"] ?? "",
       patientName: map["patientName"] ?? "",
+      doctorId: map["doctorId"] ?? "",
       doctorName: map["doctorName"] ?? "",
       appointmentDate:
           (map["appointmentDate"] as Timestamp).toDate(),
