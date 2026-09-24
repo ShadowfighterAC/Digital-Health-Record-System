@@ -162,6 +162,49 @@ class AppLocalizations {
   String get somethingWentWrong =>
       isMarathi ? "काहीतरी चूक झाली." : "Something went wrong.";
 
+  // Redesigned Patient Dashboard additions
+  String get hello => isMarathi ? "नमस्ते" : "Hello";
+  String helloUser(String name) => isMarathi ? "नमस्ते, $name" : "Hello, $name";
+  String get takeCareSubtitle =>
+      isMarathi ? "आजच तुमच्या आरोग्याची काळजी घ्या!" : "Take care of your health today!";
+  String get yourHealthOurPriority =>
+      isMarathi ? "तुमचे आरोग्य, आमचे प्राधान्य" : "Your Health, Our Priority";
+  String get welcomeCardSubtitle => isMarathi
+      ? "अपॉइंटमेंट बुक करा, नोंदी पहा आणि निरोगी रहा."
+      : "Book appointments, access your records and stay healthy.";
+  String get upcomingAppointments =>
+      isMarathi ? "पुढील अपॉइंटमेंट्स" : "Upcoming Appointments";
+  String get viewAll => isMarathi ? "सर्व पहा →" : "View All →";
+  String get noUpcomingAppointments =>
+      isMarathi ? "कोणतीही पुढील अपॉइंटमेंट नाही" : "No upcoming appointments";
+  String get scheduleVisitPrompt => isMarathi
+      ? "कधीही तुमच्या डॉक्टरांकडे भेट निश्चित करा."
+      : "Schedule a visit with your doctor anytime.";
+  String get recentActivity => isMarathi ? "अलीकडील घडामोडी" : "Recent Activity";
+  String get noRecentActivity =>
+      isMarathi ? "अद्याप कोणतीही घडामोड नाही" : "No recent activity yet";
+  String get recentActivitySubtitle => isMarathi
+      ? "तुमची प्रिस्क्रिप्शन, लॅब अहवाल आणि भेटी येथे दिसतील."
+      : "Your prescriptions, lab reports, and visits will appear here.";
+  String get prescriptionAdded =>
+      isMarathi ? "नवीन प्रिस्क्रिप्शन जोडले" : "Prescription Added";
+  String get medicalRecordUpdated =>
+      isMarathi ? "वैद्यकीय नोंद जोडली" : "Medical Record Added";
+  String get labReportAdded =>
+      isMarathi ? "लॅब अहवाल उपलब्ध" : "Lab Report Available";
+  String get home => isMarathi ? "मुख्यपृष्ठ" : "Home";
+  String get doctors => isMarathi ? "डॉक्टर" : "Doctors";
+  String get myDoctors => isMarathi ? "माझे डॉक्टर" : "My Doctors";
+  String get notifications => isMarathi ? "सूचना" : "Notifications";
+  String get noNewNotifications =>
+      isMarathi ? "कोणत्याही नवीन सूचना नाहीत" : "No new notifications";
+  String get medicalHistoryCardSubtitle => isMarathi
+      ? "ॲलर्जी, जुने आजार आणि मागील शस्त्रक्रिया"
+      : "Allergies, chronic conditions & past surgeries";
+  String get generalConsultation =>
+      isMarathi ? "सामान्य तपासणी" : "General Consultation";
+  String get confirmed => isMarathi ? "निश्चित" : "Confirmed";
+
   // ─────────────────────────────────────────────────────────────────────────
   // Doctor Dashboard & Clinic Management
   // ─────────────────────────────────────────────────────────────────────────
@@ -203,6 +246,28 @@ class AppLocalizations {
   String get addHistory => isMarathi ? "इतिहास जोडा" : "Add History";
   String get schedule => isMarathi ? "नियोजन करा" : "Schedule";
   String get scheduleAppointment => isMarathi ? "अपॉइंटमेंट निश्चित करा" : "Schedule Appointment";
+
+  // Redesigned Doctor Dashboard additions
+  String helloDoctor(String name) => isMarathi ? "नमस्ते डॉ. $name," : "Hello Dr. $name,";
+  String get doctorOverviewSubtitle =>
+      isMarathi ? "येथे आजचा तुमचा सारांश आहे." : "Here's your overview for today.";
+  String get makeDifferenceTitle =>
+      isMarathi ? "दररोज सकारात्मक बदल घडवा" : "Make a Difference Every Day";
+  String get makeDifferenceSubtitle => isMarathi
+      ? "रुग्ण आणि अपॉइंटमेंट्स व्यवस्थापित करा आणि अधिक चांगली सेवा द्या."
+      : "Manage your patients, appointments and provide better care.";
+  String get todaysAppointments =>
+      isMarathi ? "आजच्या अपॉइंटमेंट्स" : "Today's Appointments";
+  String get totalPatients => isMarathi ? "एकूण रुग्ण" : "Total Patients";
+  String get pendingReports => isMarathi ? "प्रलंबित अहवाल" : "Pending Reports";
+  String get newLabResults => isMarathi ? "नवीन लॅब निष्कर्ष" : "New Lab Results";
+  String get patientList => isMarathi ? "रुग्ण यादी" : "Patient List";
+  String get noAppointmentsToday =>
+      isMarathi ? "आज कोणतीही अपॉइंटमेंट नाही" : "No appointments today";
+  String get noAppointmentsTodaySubtitle => isMarathi
+      ? "आज तुमच्याकडे कोणत्याही भेटी नियोजित नाहीत."
+      : "You have no consultations scheduled for today.";
+  String get reports => isMarathi ? "अहवाल" : "Reports";
 
   // ─────────────────────────────────────────────────────────────────────────
   // Patient Directory & Selection
@@ -566,6 +631,12 @@ class AppLocalizations {
     switch (status.toLowerCase()) {
       case 'scheduled':
         return "नियोजित";
+      case 'checked in':
+        return "उपस्थित";
+      case 'waiting':
+        return "प्रतीक्षेत";
+      case 'confirmed':
+        return "निश्चित";
       case 'completed':
         return "पूर्ण झाले";
       case 'cancelled':

@@ -8,7 +8,12 @@ import '../../services/appointment_service.dart';
 import '../../utils/app_constants.dart';
 
 class PatientAppointments extends StatefulWidget {
-  const PatientAppointments({super.key});
+  final bool autoOpenBooking;
+
+  const PatientAppointments({
+    super.key,
+    this.autoOpenBooking = false,
+  });
 
   @override
   State<PatientAppointments> createState() => _PatientAppointmentsState();
@@ -16,6 +21,18 @@ class PatientAppointments extends StatefulWidget {
 
 class _PatientAppointmentsState extends State<PatientAppointments> {
   final AppointmentService _service = AppointmentService();
+
+  @override
+  void initState() {
+    super.initState();
+    if (widget.autoOpenBooking) {
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        if (mounted) {
+          _bookAppointment();
+        }
+      });
+    }
+  }
 
   Color _getStatusColor(String status) {
     switch (status) {
