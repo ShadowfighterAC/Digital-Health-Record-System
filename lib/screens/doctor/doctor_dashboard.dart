@@ -1,8 +1,10 @@
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 
+import '../../l10n/app_localizations.dart';
 import '../../services/firestore_service.dart';
 import '../../widgets/info_card.dart';
+import '../../widgets/language_selector_dialog.dart';
 import '../auth/login_screen.dart';
 import 'doctor_appointments_screen.dart';
 import 'doctor_lab_reports_screen.dart';
@@ -43,20 +45,21 @@ class _DoctorDashboardState extends State<DoctorDashboard> {
   }
 
   Future<void> _logout(BuildContext context) async {
+    final l10n = context.l10n;
     final confirm = await showDialog<bool>(
       context: context,
       builder: (ctx) => AlertDialog(
-        title: const Text("Confirm Logout"),
-        content: const Text("Are you sure you want to log out of Doctor Dashboard?"),
+        title: Text(l10n.confirmLogout),
+        content: Text(l10n.confirmLogoutDoctorPrompt),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(ctx, false),
-            child: const Text("Cancel"),
+            child: Text(l10n.cancel),
           ),
           ElevatedButton(
             style: ElevatedButton.styleFrom(backgroundColor: Colors.red),
             onPressed: () => Navigator.pop(ctx, true),
-            child: const Text("Logout"),
+            child: Text(l10n.logout),
           ),
         ],
       ),
@@ -108,14 +111,25 @@ class _DoctorDashboardState extends State<DoctorDashboard> {
 
   @override
   Widget build(BuildContext context) {
-    final doctorName = doctorData?["name"] ?? "Doctor";
+    final l10n = context.l10n;
+    final doctorName = doctorData?["name"] ?? l10n.doctor;
 
     return Scaffold(
       backgroundColor: const Color(0xFFF5F7FA),
       appBar: AppBar(
-        title: const Text("Doctor Dashboard"),
+        title: Text(l10n.doctorDashboard),
         centerTitle: true,
         actions: [
+          IconButton(
+            icon: const Icon(Icons.language),
+            tooltip: l10n.language,
+            onPressed: () {
+              showDialog(
+                context: context,
+                builder: (_) => const LanguageSelectorDialog(),
+              );
+            },
+          ),
           IconButton(
             icon: const Icon(Icons.account_circle_outlined, size: 28),
             onPressed: () {
@@ -156,9 +170,9 @@ class _DoctorDashboardState extends State<DoctorDashboard> {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  const Text(
-                    "Welcome Doctor 👨‍⚕️",
-                    style: TextStyle(
+                  Text(
+                    "${l10n.welcomeDoctor} 👨‍⚕️",
+                    style: const TextStyle(
                       color: Colors.white70,
                       fontSize: 16,
                     ),
@@ -173,9 +187,9 @@ class _DoctorDashboardState extends State<DoctorDashboard> {
                     ),
                   ),
                   const SizedBox(height: 6),
-                  const Text(
-                    "Electronic Health Records & Patient Care",
-                    style: TextStyle(
+                  Text(
+                    l10n.doctorSubtitle,
+                    style: const TextStyle(
                       color: Colors.white70,
                       fontSize: 13,
                     ),
@@ -187,9 +201,9 @@ class _DoctorDashboardState extends State<DoctorDashboard> {
             const SizedBox(height: 20),
 
             // Statistics Header
-            const Text(
-              "Clinic Overview",
-              style: TextStyle(
+            Text(
+              l10n.clinicOverview,
+              style: const TextStyle(
                 fontSize: 20,
                 fontWeight: FontWeight.bold,
               ),
@@ -209,7 +223,7 @@ class _DoctorDashboardState extends State<DoctorDashboard> {
                       children: [
                         InfoCard(
                           icon: Icons.people,
-                          title: "Patients",
+                          title: l10n.patients,
                           value: "${stats.totalPatients}",
                           color: Colors.blue,
                           onTap: () {
@@ -226,7 +240,7 @@ class _DoctorDashboardState extends State<DoctorDashboard> {
                         const SizedBox(width: 12),
                         InfoCard(
                           icon: Icons.calendar_month,
-                          title: "Appointments",
+                          title: l10n.appointments,
                           value: "${stats.totalAppointments}",
                           color: Colors.orange,
                           onTap: () {
@@ -246,7 +260,7 @@ class _DoctorDashboardState extends State<DoctorDashboard> {
                       children: [
                         InfoCard(
                           icon: Icons.folder_open,
-                          title: "Records",
+                          title: l10n.records,
                           value: "${stats.totalRecords}",
                           color: Colors.green,
                           onTap: () {
@@ -263,7 +277,7 @@ class _DoctorDashboardState extends State<DoctorDashboard> {
                         const SizedBox(width: 12),
                         InfoCard(
                           icon: Icons.medication,
-                          title: "Prescriptions",
+                          title: l10n.prescriptions,
                           value: "${stats.totalPrescriptions}",
                           color: Colors.purple,
                           onTap: () {
@@ -286,9 +300,9 @@ class _DoctorDashboardState extends State<DoctorDashboard> {
             const SizedBox(height: 24),
 
             // Quick Actions & Management
-            const Text(
-              "Management & Features",
-              style: TextStyle(
+            Text(
+              l10n.managementAndFeatures,
+              style: const TextStyle(
                 fontSize: 20,
                 fontWeight: FontWeight.bold,
               ),
@@ -298,8 +312,8 @@ class _DoctorDashboardState extends State<DoctorDashboard> {
 
             _buildDashboardButton(
               icon: Icons.people_alt_outlined,
-              title: "Patients Directory",
-              subtitle: "View all patients and individual EHR history",
+              title: l10n.patientsDirectory,
+              subtitle: l10n.patientsDirectorySubtitle,
               color: Colors.blue,
               onTap: () {
                 Navigator.push(
@@ -315,8 +329,8 @@ class _DoctorDashboardState extends State<DoctorDashboard> {
 
             _buildDashboardButton(
               icon: Icons.calendar_month,
-              title: "Appointments Manager",
-              subtitle: "Manage, reschedule, or complete appointments",
+              title: l10n.appointmentsManager,
+              subtitle: l10n.appointmentsManagerSubtitle,
               color: Colors.orange,
               onTap: () {
                 Navigator.push(
@@ -330,8 +344,8 @@ class _DoctorDashboardState extends State<DoctorDashboard> {
 
             _buildDashboardButton(
               icon: Icons.medication_outlined,
-              title: "Prescriptions",
-              subtitle: "Issue and review patient prescriptions",
+              title: l10n.prescriptions,
+              subtitle: l10n.prescriptionsManagerSubtitle,
               color: Colors.purple,
               onTap: () {
                 Navigator.push(
@@ -345,8 +359,8 @@ class _DoctorDashboardState extends State<DoctorDashboard> {
 
             _buildDashboardButton(
               icon: Icons.science_outlined,
-              title: "Lab Reports",
-              subtitle: "Record and review diagnostic test findings",
+              title: l10n.labReports,
+              subtitle: l10n.labReportsManagerSubtitle,
               color: Colors.teal,
               onTap: () {
                 Navigator.push(
@@ -360,8 +374,8 @@ class _DoctorDashboardState extends State<DoctorDashboard> {
 
             _buildDashboardButton(
               icon: Icons.history_edu_outlined,
-              title: "Medical History",
-              subtitle: "Review diagnoses, surgeries, conditions & document files",
+              title: l10n.medicalHistory,
+              subtitle: l10n.medicalHistoryManagerSubtitle,
               color: Colors.indigo,
               onTap: () {
                 Navigator.push(
@@ -375,8 +389,8 @@ class _DoctorDashboardState extends State<DoctorDashboard> {
 
             _buildDashboardButton(
               icon: Icons.note_add_outlined,
-              title: "Add Medical Record",
-              subtitle: "Select a patient to document diagnosis & treatment",
+              title: l10n.addMedicalRecord,
+              subtitle: l10n.addMedicalRecordSubtitle,
               color: Colors.green,
               onTap: () {
                 Navigator.push(
@@ -392,8 +406,8 @@ class _DoctorDashboardState extends State<DoctorDashboard> {
 
             _buildDashboardButton(
               icon: Icons.person_outline,
-              title: "My Profile",
-              subtitle: "View doctor credentials and settings",
+              title: l10n.myProfile,
+              subtitle: l10n.doctorProfileSettingsSubtitle,
               color: Colors.indigo,
               onTap: () {
                 Navigator.push(
@@ -420,9 +434,9 @@ class _DoctorDashboardState extends State<DoctorDashboard> {
                 ),
                 onPressed: () => _logout(context),
                 icon: const Icon(Icons.logout),
-                label: const Text(
-                  "Logout",
-                  style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+                label: Text(
+                  l10n.logout,
+                  style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
                 ),
               ),
             ),

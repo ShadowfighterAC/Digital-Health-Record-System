@@ -1,9 +1,13 @@
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_localizations/flutter_localizations.dart';
+import 'package:provider/provider.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
 import 'firebase_options.dart';
+import 'l10n/app_localizations.dart';
+import 'providers/locale_provider.dart';
 import 'themes/app_theme.dart';
 import 'screens/splash/splash_screen.dart';
 import 'utils/app_constants.dart';
@@ -26,7 +30,12 @@ Future<void> main() async {
     },
   );
 
-  runApp(const EHRApp());
+  runApp(
+    ChangeNotifierProvider(
+      create: (_) => LocaleProvider(),
+      child: const EHRApp(),
+    ),
+  );
 }
 
 class EHRApp extends StatelessWidget {
@@ -34,11 +43,24 @@ class EHRApp extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final localeProvider = Provider.of<LocaleProvider>(context);
+
     return MaterialApp(
       title: 'Digital Health Record System',
       debugShowCheckedModeBanner: false,
       theme: AppTheme.lightTheme,
+      locale: localeProvider.locale,
+      supportedLocales: const [
+        Locale('en'),
+        Locale('mr'),
+      ],
+      localizationsDelegates: const [
+        AppLocalizations.delegate,
+        GlobalMaterialLocalizations.delegate,
+        GlobalWidgetsLocalizations.delegate,
+        GlobalCupertinoLocalizations.delegate,
+      ],
       home: const SplashScreen(),
     );
   }
-}
+}

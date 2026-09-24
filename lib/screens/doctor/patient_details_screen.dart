@@ -1,6 +1,7 @@
-﻿import 'package:flutter/material.dart';
+import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 
+import '../../l10n/app_localizations.dart';
 import '../../models/appointment_model.dart';
 import '../../models/lab_report_model.dart';
 import '../../models/medical_history_model.dart';
@@ -91,7 +92,7 @@ class _PatientDetailsScreenState extends State<PatientDetailsScreen>
     );
   }
 
-  Widget _buildRecordsTab() {
+  Widget _buildRecordsTab(AppLocalizations l10n) {
     return StreamBuilder<List<MedicalRecordModel>>(
       stream: _recordService.getPatientRecords(widget.patient.uid),
       builder: (context, snapshot) {
@@ -100,8 +101,8 @@ class _PatientDetailsScreenState extends State<PatientDetailsScreen>
         }
         final records = snapshot.data ?? [];
         if (records.isEmpty) {
-          return const Center(
-            child: Text("No medical records for this patient."),
+          return Center(
+            child: Text(l10n.noRecordsForPatient),
           );
         }
         return ListView.builder(
@@ -128,12 +129,12 @@ class _PatientDetailsScreenState extends State<PatientDetailsScreen>
                     ),
                     if (rec.prescription.isNotEmpty) ...[
                       const SizedBox(height: 6),
-                      Text("Prescription: ${rec.prescription}"),
+                      Text("${l10n.prescriptions}: ${rec.prescription}"),
                     ],
                     if (rec.notes.isNotEmpty) ...[
                       const SizedBox(height: 4),
                       Text(
-                        "Notes: ${rec.notes}",
+                        "${l10n.notes}: ${rec.notes}",
                         style: TextStyle(color: Colors.grey.shade700),
                       ),
                     ],
@@ -145,7 +146,7 @@ class _PatientDetailsScreenState extends State<PatientDetailsScreen>
                       mainAxisAlignment: MainAxisAlignment.spaceBetween,
                       children: [
                         Text(
-                          "Dr: ${rec.doctorName}",
+                          "${l10n.doctor}: ${rec.doctorName}",
                           style: TextStyle(
                             fontSize: 12,
                             color: Colors.grey.shade600,
@@ -170,7 +171,7 @@ class _PatientDetailsScreenState extends State<PatientDetailsScreen>
     );
   }
 
-  Widget _buildHistoryTab() {
+  Widget _buildHistoryTab(AppLocalizations l10n) {
     return StreamBuilder<List<MedicalHistoryModel>>(
       stream: _historyService.getPatientHistory(widget.patient.uid),
       builder: (context, snapshot) {
@@ -179,8 +180,8 @@ class _PatientDetailsScreenState extends State<PatientDetailsScreen>
         }
         final historyList = snapshot.data ?? [];
         if (historyList.isEmpty) {
-          return const Center(
-            child: Text("No medical history recorded for this patient."),
+          return Center(
+            child: Text(l10n.noHistoryForPatient),
           );
         }
         return ListView.builder(
@@ -212,7 +213,7 @@ class _PatientDetailsScreenState extends State<PatientDetailsScreen>
                             border: Border.all(color: Colors.teal.shade200),
                           ),
                           child: Text(
-                            history.category,
+                            l10n.translateCategory(history.category),
                             style: TextStyle(
                               color: Colors.teal.shade800,
                               fontSize: 11,
@@ -247,7 +248,7 @@ class _PatientDetailsScreenState extends State<PatientDetailsScreen>
                     if (history.notes.isNotEmpty) ...[
                       const SizedBox(height: 4),
                       Text(
-                        "Doctor Remarks: ${history.notes}",
+                        "${l10n.remarks}: ${history.notes}",
                         style: TextStyle(
                           fontSize: 12,
                           fontStyle: FontStyle.italic,
@@ -260,7 +261,7 @@ class _PatientDetailsScreenState extends State<PatientDetailsScreen>
                     ],
                     const Divider(height: 16),
                     Text(
-                      "Recorded by: ${history.doctorName}",
+                      l10n.recordedBy(history.doctorName),
                       style: TextStyle(
                         fontSize: 11,
                         color: Colors.grey.shade600,
@@ -276,7 +277,7 @@ class _PatientDetailsScreenState extends State<PatientDetailsScreen>
     );
   }
 
-  Widget _buildPrescriptionsTab() {
+  Widget _buildPrescriptionsTab(AppLocalizations l10n) {
     return StreamBuilder<List<PrescriptionModel>>(
       stream: _prescriptionService.getPatientPrescriptions(widget.patient.uid),
       builder: (context, snapshot) {
@@ -285,8 +286,8 @@ class _PatientDetailsScreenState extends State<PatientDetailsScreen>
         }
         final list = snapshot.data ?? [];
         if (list.isEmpty) {
-          return const Center(
-            child: Text("No prescriptions for this patient."),
+          return Center(
+            child: Text(l10n.noPrescriptionsForPatient),
           );
         }
         return ListView.builder(
@@ -305,7 +306,7 @@ class _PatientDetailsScreenState extends State<PatientDetailsScreen>
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Text(
-                      "Prescription (${DateFormat('dd MMM yyyy').format(rx.prescriptionDate)})",
+                      "${l10n.prescriptions} (${DateFormat('dd MMM yyyy').format(rx.prescriptionDate)})",
                       style: const TextStyle(
                         fontSize: 15,
                         fontWeight: FontWeight.bold,
@@ -315,14 +316,14 @@ class _PatientDetailsScreenState extends State<PatientDetailsScreen>
                     const SizedBox(height: 6),
                     ...rx.medicines.map(
                       (m) => Text(
-                        "• ${m.medicineName} (${m.dosage}) - ${m.frequency} for ${m.duration}",
+                        "• ${m.medicineName} (${m.dosage}) - ${l10n.translateFrequency(m.frequency)} for ${m.duration}",
                         style: const TextStyle(fontSize: 13),
                       ),
                     ),
                     if (rx.notes.isNotEmpty) ...[
                       const SizedBox(height: 4),
                       Text(
-                        "Advice: ${rx.notes}",
+                        "${l10n.advice}: ${rx.notes}",
                         style: TextStyle(
                           fontSize: 12,
                           color: Colors.grey.shade700,
@@ -339,7 +340,7 @@ class _PatientDetailsScreenState extends State<PatientDetailsScreen>
     );
   }
 
-  Widget _buildLabReportsTab() {
+  Widget _buildLabReportsTab(AppLocalizations l10n) {
     return StreamBuilder<List<LabReportModel>>(
       stream: _labReportService.getPatientLabReports(widget.patient.uid),
       builder: (context, snapshot) {
@@ -348,8 +349,8 @@ class _PatientDetailsScreenState extends State<PatientDetailsScreen>
         }
         final list = snapshot.data ?? [];
         if (list.isEmpty) {
-          return const Center(
-            child: Text("No lab reports for this patient."),
+          return Center(
+            child: Text(l10n.noLabReportsForPatient),
           );
         }
         return ListView.builder(
@@ -377,12 +378,12 @@ class _PatientDetailsScreenState extends State<PatientDetailsScreen>
                     ),
                     const SizedBox(height: 4),
                     Text(
-                      "Result: ${lab.result}",
+                      "${l10n.result}: ${lab.result}",
                       style: const TextStyle(fontWeight: FontWeight.w600),
                     ),
                     if (lab.referenceRange.isNotEmpty)
                       Text(
-                        "Normal: ${lab.referenceRange}",
+                        "${l10n.normal}: ${lab.referenceRange}",
                         style: TextStyle(
                           fontSize: 12,
                           color: Colors.grey.shade600,
@@ -390,7 +391,7 @@ class _PatientDetailsScreenState extends State<PatientDetailsScreen>
                       ),
                     if (lab.remarks.isNotEmpty)
                       Text(
-                        "Remarks: ${lab.remarks}",
+                        "${l10n.remarks}: ${lab.remarks}",
                         style: TextStyle(
                           fontSize: 12,
                           color: Colors.grey.shade700,
@@ -417,7 +418,7 @@ class _PatientDetailsScreenState extends State<PatientDetailsScreen>
     );
   }
 
-  Widget _buildAppointmentsTab() {
+  Widget _buildAppointmentsTab(AppLocalizations l10n) {
     return StreamBuilder<List<AppointmentModel>>(
       stream: _appointmentService.getPatientAppointments(widget.patient.uid),
       builder: (context, snapshot) {
@@ -426,8 +427,8 @@ class _PatientDetailsScreenState extends State<PatientDetailsScreen>
         }
         final list = snapshot.data ?? [];
         if (list.isEmpty) {
-          return const Center(
-            child: Text("No appointments scheduled for this patient."),
+          return Center(
+            child: Text(l10n.noAppointmentsForPatient),
           );
         }
         return ListView.builder(
@@ -446,11 +447,11 @@ class _PatientDetailsScreenState extends State<PatientDetailsScreen>
                   style: const TextStyle(fontWeight: FontWeight.bold),
                 ),
                 subtitle: Text(
-                  "${DateFormat('dd MMM yyyy').format(appt.appointmentDate)} at ${appt.appointmentTime}",
+                  "${DateFormat('dd MMM yyyy').format(appt.appointmentDate)} ${l10n.atTime} ${appt.appointmentTime}",
                 ),
                 trailing: Chip(
                   label: Text(
-                    appt.status,
+                    l10n.translateStatus(appt.status),
                     style: const TextStyle(fontSize: 11),
                   ),
                 ),
@@ -464,6 +465,7 @@ class _PatientDetailsScreenState extends State<PatientDetailsScreen>
 
   @override
   Widget build(BuildContext context) {
+    final l10n = context.l10n;
     return Scaffold(
       backgroundColor: const Color(0xFFF5F7FA),
       appBar: AppBar(
@@ -537,7 +539,7 @@ class _PatientDetailsScreenState extends State<PatientDetailsScreen>
                   children: [
                     _buildActionButton(
                       icon: Icons.note_add,
-                      label: "+ Record",
+                      label: l10n.addRecordShort,
                       color: Colors.blue,
                       onTap: () {
                         Navigator.push(
@@ -554,7 +556,7 @@ class _PatientDetailsScreenState extends State<PatientDetailsScreen>
                     const SizedBox(width: 6),
                     _buildActionButton(
                       icon: Icons.history_edu,
-                      label: "+ History",
+                      label: l10n.addHistoryShort,
                       color: Colors.teal,
                       onTap: () {
                         Navigator.push(
@@ -571,7 +573,7 @@ class _PatientDetailsScreenState extends State<PatientDetailsScreen>
                     const SizedBox(width: 6),
                     _buildActionButton(
                       icon: Icons.medication,
-                      label: "+ Rx",
+                      label: l10n.addRxShort,
                       color: Colors.green,
                       onTap: () {
                         Navigator.push(
@@ -588,7 +590,7 @@ class _PatientDetailsScreenState extends State<PatientDetailsScreen>
                     const SizedBox(width: 6),
                     _buildActionButton(
                       icon: Icons.science,
-                      label: "+ Lab",
+                      label: l10n.addLabShort,
                       color: Colors.purple,
                       onTap: () {
                         Navigator.push(
@@ -605,7 +607,7 @@ class _PatientDetailsScreenState extends State<PatientDetailsScreen>
                     const SizedBox(width: 6),
                     _buildActionButton(
                       icon: Icons.calendar_month,
-                      label: "+ Appt",
+                      label: l10n.addApptShort,
                       color: Colors.orange,
                       onTap: () {
                         Navigator.push(
@@ -635,12 +637,12 @@ class _PatientDetailsScreenState extends State<PatientDetailsScreen>
               labelColor: Colors.blue,
               unselectedLabelColor: Colors.grey,
               indicatorColor: Colors.blue,
-              tabs: const [
-                Tab(text: "Records"),
-                Tab(text: "History"),
-                Tab(text: "Prescriptions"),
-                Tab(text: "Lab Tests"),
-                Tab(text: "Appointments"),
+              tabs: [
+                Tab(text: l10n.tabRecords),
+                Tab(text: l10n.tabHistory),
+                Tab(text: l10n.tabPrescriptions),
+                Tab(text: l10n.tabLabTests),
+                Tab(text: l10n.tabAppointments),
               ],
             ),
           ),
@@ -650,11 +652,11 @@ class _PatientDetailsScreenState extends State<PatientDetailsScreen>
             child: TabBarView(
               controller: _tabController,
               children: [
-                _buildRecordsTab(),
-                _buildHistoryTab(),
-                _buildPrescriptionsTab(),
-                _buildLabReportsTab(),
-                _buildAppointmentsTab(),
+                _buildRecordsTab(l10n),
+                _buildHistoryTab(l10n),
+                _buildPrescriptionsTab(l10n),
+                _buildLabReportsTab(l10n),
+                _buildAppointmentsTab(l10n),
               ],
             ),
           ),
@@ -663,3 +665,4 @@ class _PatientDetailsScreenState extends State<PatientDetailsScreen>
     );
   }
 }
+

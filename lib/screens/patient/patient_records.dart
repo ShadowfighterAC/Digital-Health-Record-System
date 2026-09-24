@@ -1,7 +1,8 @@
-﻿import 'package:firebase_auth/firebase_auth.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 
+import '../../l10n/app_localizations.dart';
 import '../../models/medical_record_model.dart';
 import '../../services/medical_record_service.dart';
 import '../../widgets/attachment_view_widget.dart';
@@ -13,14 +14,15 @@ class PatientRecords extends StatelessWidget {
   Widget build(BuildContext context) {
     final service = MedicalRecordService();
     final uid = FirebaseAuth.instance.currentUser?.uid ?? "";
+    final l10n = context.l10n;
 
     return Scaffold(
       appBar: AppBar(
-        title: const Text("Medical Records"),
+        title: Text(l10n.medicalRecords),
         centerTitle: true,
       ),
       body: uid.isEmpty
-          ? const Center(child: Text("Please sign in to view records."))
+          ? Center(child: Text(l10n.pleaseSignInRecords))
           : StreamBuilder<List<MedicalRecordModel>>(
               stream: service.getPatientRecords(uid),
               builder: (context, snapshot) {
@@ -31,8 +33,8 @@ class PatientRecords extends StatelessWidget {
                 }
 
                 if (snapshot.hasError) {
-                  return const Center(
-                    child: Text("Something went wrong."),
+                  return Center(
+                    child: Text(l10n.somethingWentWrong),
                   );
                 }
 
@@ -49,17 +51,17 @@ class PatientRecords extends StatelessWidget {
                           color: Colors.grey.shade400,
                         ),
                         const SizedBox(height: 20),
-                        const Text(
-                          "No Medical Records Yet",
-                          style: TextStyle(
+                        Text(
+                          l10n.noRecordsYet,
+                          style: const TextStyle(
                             fontSize: 22,
                             fontWeight: FontWeight.bold,
                           ),
                         ),
                         const SizedBox(height: 8),
-                        const Text(
-                          "Your medical records will appear here.",
-                          style: TextStyle(color: Colors.grey),
+                        Text(
+                          l10n.recordsAppearHere,
+                          style: const TextStyle(color: Colors.grey),
                         ),
                       ],
                     ),

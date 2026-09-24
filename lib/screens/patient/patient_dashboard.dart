@@ -1,8 +1,10 @@
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 
+import '../../l10n/app_localizations.dart';
 import '../../services/firestore_service.dart';
 import '../../widgets/info_card.dart';
+import '../../widgets/language_selector_dialog.dart';
 import '../auth/login_screen.dart';
 import 'choose_doctor_screen.dart';
 import 'patient_records.dart';
@@ -45,20 +47,21 @@ class _PatientDashboardState extends State<PatientDashboard> {
   }
 
   Future<void> logout() async {
+    final l10n = context.l10n;
     final confirm = await showDialog<bool>(
       context: context,
       builder: (ctx) => AlertDialog(
-        title: const Text("Confirm Logout"),
-        content: const Text("Are you sure you want to sign out?"),
+        title: Text(l10n.confirmLogout),
+        content: Text(l10n.confirmLogoutPrompt),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(ctx, false),
-            child: const Text("Cancel"),
+            child: Text(l10n.cancel),
           ),
           ElevatedButton(
             style: ElevatedButton.styleFrom(backgroundColor: Colors.red),
             onPressed: () => Navigator.pop(ctx, true),
-            child: const Text("Logout"),
+            child: Text(l10n.logout),
           ),
         ],
       ),
@@ -122,6 +125,8 @@ class _PatientDashboardState extends State<PatientDashboard> {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = context.l10n;
+
     if (isLoading) {
       return const Scaffold(
         body: Center(
@@ -131,14 +136,19 @@ class _PatientDashboardState extends State<PatientDashboard> {
     }
 
     final uid = FirebaseAuth.instance.currentUser?.uid ?? "";
-    final patientName = userData?["name"] ?? "Patient";
+    final patientName = userData?["name"] ?? l10n.patient;
 
     return Scaffold(
       backgroundColor: const Color(0xFFF5F7FA),
       appBar: AppBar(
-        title: const Text("Patient Dashboard"),
+        title: Text(l10n.patientDashboard),
         centerTitle: true,
         actions: [
+          IconButton(
+            icon: const Icon(Icons.language),
+            tooltip: l10n.selectLanguage,
+            onPressed: () => showLanguageSelectorDialog(context),
+          ),
           IconButton(
             icon: const Icon(
               Icons.account_circle_outlined,
@@ -184,9 +194,9 @@ class _PatientDashboardState extends State<PatientDashboard> {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  const Text(
-                    "Welcome 👋",
-                    style: TextStyle(
+                  Text(
+                    "${l10n.welcome} 👋",
+                    style: const TextStyle(
                       color: Colors.white70,
                       fontSize: 16,
                     ),
@@ -201,9 +211,9 @@ class _PatientDashboardState extends State<PatientDashboard> {
                     ),
                   ),
                   const SizedBox(height: 6),
-                  const Text(
-                    "Your Personal Health Records Portal",
-                    style: TextStyle(
+                  Text(
+                    l10n.personalPortalSubtitle,
+                    style: const TextStyle(
                       color: Colors.white70,
                       fontSize: 13,
                     ),
@@ -214,9 +224,9 @@ class _PatientDashboardState extends State<PatientDashboard> {
 
             const SizedBox(height: 20),
 
-            const Text(
-              "Health Summary",
-              style: TextStyle(
+            Text(
+              l10n.healthSummary,
+              style: const TextStyle(
                 fontSize: 20,
                 fontWeight: FontWeight.bold,
               ),
@@ -235,7 +245,7 @@ class _PatientDashboardState extends State<PatientDashboard> {
                       children: [
                         InfoCard(
                           icon: Icons.description,
-                          title: "Records",
+                          title: l10n.records,
                           value: "${stats.recordsCount}",
                           color: Colors.blue,
                           onTap: () {
@@ -250,7 +260,7 @@ class _PatientDashboardState extends State<PatientDashboard> {
                         const SizedBox(width: 12),
                         InfoCard(
                           icon: Icons.medication,
-                          title: "Prescriptions",
+                          title: l10n.prescriptions,
                           value: "${stats.prescriptionsCount}",
                           color: Colors.green,
                           onTap: () {
@@ -270,7 +280,7 @@ class _PatientDashboardState extends State<PatientDashboard> {
                       children: [
                         InfoCard(
                           icon: Icons.science,
-                          title: "Lab Reports",
+                          title: l10n.labReports,
                           value: "${stats.labReportsCount}",
                           color: Colors.orange,
                           onTap: () {
@@ -286,7 +296,7 @@ class _PatientDashboardState extends State<PatientDashboard> {
                         const SizedBox(width: 12),
                         InfoCard(
                           icon: Icons.calendar_today,
-                          title: "Appointments",
+                          title: l10n.appointments,
                           value: "${stats.appointmentsCount}",
                           color: Colors.purple,
                           onTap: () {
@@ -308,9 +318,9 @@ class _PatientDashboardState extends State<PatientDashboard> {
 
             const SizedBox(height: 24),
 
-            const Text(
-              "My Health Hub",
-              style: TextStyle(
+            Text(
+              l10n.myHealthHub,
+              style: const TextStyle(
                 fontSize: 20,
                 fontWeight: FontWeight.bold,
               ),
@@ -320,8 +330,8 @@ class _PatientDashboardState extends State<PatientDashboard> {
 
             _buildActionCard(
               icon: Icons.medical_services_outlined,
-              title: "My Doctor",
-              subtitle: "Choose or change your assigned doctor",
+              title: l10n.myDoctor,
+              subtitle: l10n.myDoctorSubtitle,
               color: Colors.red,
               onTap: () {
                 Navigator.push(
@@ -335,8 +345,8 @@ class _PatientDashboardState extends State<PatientDashboard> {
 
             _buildActionCard(
               icon: Icons.folder_open,
-              title: "Medical Records",
-              subtitle: "View diagnosis history and doctor visit notes",
+              title: l10n.medicalRecords,
+              subtitle: l10n.medicalRecordsSubtitle,
               color: Colors.blue,
               onTap: () {
                 Navigator.push(
@@ -350,9 +360,8 @@ class _PatientDashboardState extends State<PatientDashboard> {
 
             _buildActionCard(
               icon: Icons.history_edu,
-              title: "Medical History",
-              subtitle:
-                  "Previous diagnoses, surgeries, conditions, and allergies",
+              title: l10n.medicalHistory,
+              subtitle: l10n.medicalHistorySubtitle,
               color: Colors.teal,
               onTap: () {
                 Navigator.push(
@@ -366,9 +375,8 @@ class _PatientDashboardState extends State<PatientDashboard> {
 
             _buildActionCard(
               icon: Icons.calendar_today,
-              title: "My Appointments",
-              subtitle:
-                  "Check upcoming and past consultation dates",
+              title: l10n.myAppointments,
+              subtitle: l10n.myAppointmentsSubtitle,
               color: Colors.purple,
               onTap: () {
                 Navigator.push(
@@ -382,9 +390,8 @@ class _PatientDashboardState extends State<PatientDashboard> {
 
             _buildActionCard(
               icon: Icons.medication,
-              title: "Prescriptions & Medicines",
-              subtitle:
-                  "Active medicines, dosages, and doctor advice",
+              title: l10n.prescriptionsAndMedicines,
+              subtitle: l10n.prescriptionsSubtitle,
               color: Colors.green,
               onTap: () {
                 Navigator.push(
@@ -398,9 +405,8 @@ class _PatientDashboardState extends State<PatientDashboard> {
 
             _buildActionCard(
               icon: Icons.science,
-              title: "Lab & Diagnostic Reports",
-              subtitle:
-                  "Review clinical test results and remarks",
+              title: l10n.labAndDiagnosticReports,
+              subtitle: l10n.labReportsSubtitle,
               color: Colors.orange,
               onTap: () {
                 Navigator.push(
@@ -414,9 +420,8 @@ class _PatientDashboardState extends State<PatientDashboard> {
 
             _buildActionCard(
               icon: Icons.person_outline,
-              title: "My Profile",
-              subtitle:
-                  "Account details and personal information",
+              title: l10n.myProfile,
+              subtitle: l10n.myProfileSubtitle,
               color: Colors.indigo,
               onTap: () {
                 Navigator.push(
@@ -443,9 +448,9 @@ class _PatientDashboardState extends State<PatientDashboard> {
                 ),
                 onPressed: logout,
                 icon: const Icon(Icons.logout),
-                label: const Text(
-                  "Logout",
-                  style: TextStyle(
+                label: Text(
+                  l10n.logout,
+                  style: const TextStyle(
                     fontSize: 16,
                     fontWeight: FontWeight.bold,
                   ),

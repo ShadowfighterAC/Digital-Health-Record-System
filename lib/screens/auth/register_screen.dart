@@ -1,7 +1,11 @@
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
 
+import '../../l10n/app_localizations.dart';
+import '../../providers/locale_provider.dart';
 import '../../widgets/custom_button.dart';
 import '../../widgets/custom_text_field.dart';
+import '../../widgets/language_selector_dialog.dart';
 import '../../services/auth_service.dart';
 import '../../utils/app_constants.dart';
 
@@ -35,6 +39,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
   }
 
   Future<void> _handleRegister() async {
+    final l10n = context.l10n;
     final name = nameController.text.trim();
     final email = emailController.text.trim();
     final password = passwordController.text;
@@ -42,8 +47,8 @@ class _RegisterScreenState extends State<RegisterScreen> {
 
     if (name.isEmpty || email.isEmpty || password.isEmpty || confirmPassword.isEmpty) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text("Please fill all fields"),
+        SnackBar(
+          content: Text(l10n.pleaseFillAllFields),
           backgroundColor: Colors.orange,
         ),
       );
@@ -52,8 +57,8 @@ class _RegisterScreenState extends State<RegisterScreen> {
 
     if (!email.contains("@") || !email.contains(".")) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text("Please enter a valid email address"),
+        SnackBar(
+          content: Text(l10n.pleaseEnterValidEmail),
           backgroundColor: Colors.orange,
         ),
       );
@@ -62,8 +67,8 @@ class _RegisterScreenState extends State<RegisterScreen> {
 
     if (password != confirmPassword) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text("Passwords do not match"),
+        SnackBar(
+          content: Text(l10n.passwordsDoNotMatch),
           backgroundColor: Colors.red,
         ),
       );
@@ -72,8 +77,8 @@ class _RegisterScreenState extends State<RegisterScreen> {
 
     if (password.length < 6) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text("Password must be at least 6 characters"),
+        SnackBar(
+          content: Text(l10n.passwordMinLength),
           backgroundColor: Colors.orange,
         ),
       );
@@ -99,8 +104,8 @@ class _RegisterScreenState extends State<RegisterScreen> {
 
     if (error == null) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text("Account created successfully! Please login."),
+        SnackBar(
+          content: Text(l10n.accountCreatedSuccess),
           backgroundColor: Colors.green,
         ),
       );
@@ -118,6 +123,9 @@ class _RegisterScreenState extends State<RegisterScreen> {
 
   Widget _buildRoleOption(String role, IconData icon, String subtitle) {
     final isSelected = selectedRole == role;
+    final l10n = context.l10n;
+    final displayRole = l10n.translateRole(role);
+
     return Expanded(
       child: GestureDetector(
         onTap: () {
@@ -144,7 +152,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
               ),
               const SizedBox(height: 6),
               Text(
-                role,
+                displayRole,
                 style: TextStyle(
                   fontWeight: FontWeight.bold,
                   color: isSelected ? Colors.blue.shade800 : Colors.black87,
@@ -154,6 +162,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
               const SizedBox(height: 2),
               Text(
                 subtitle,
+                textAlign: TextAlign.center,
                 style: TextStyle(
                   fontSize: 11,
                   color: Colors.grey.shade600,
@@ -168,10 +177,28 @@ class _RegisterScreenState extends State<RegisterScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = context.l10n;
+    final localeProvider = Provider.of<LocaleProvider>(context);
+
     return Scaffold(
       backgroundColor: const Color(0xFFF5F7FA),
       appBar: AppBar(
-        title: const Text("Create Account"),
+        title: Text(l10n.createAccount),
+        actions: [
+          Padding(
+            padding: const EdgeInsets.only(right: 8),
+            child: ActionChip(
+              avatar: const Icon(Icons.language, size: 16, color: Colors.white),
+              label: Text(
+                localeProvider.isMarathi ? "मराठी" : "EN",
+                style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 12, color: Colors.white),
+              ),
+              onPressed: () => showLanguageSelectorDialog(context),
+              backgroundColor: Colors.blue.shade700,
+              side: BorderSide.none,
+            ),
+          ),
+        ],
       ),
       body: SafeArea(
         child: SingleChildScrollView(
@@ -194,10 +221,10 @@ class _RegisterScreenState extends State<RegisterScreen> {
 
                   const SizedBox(height: 12),
 
-                  const Text(
-                    "Create Your Account",
+                  Text(
+                    l10n.createYourAccount,
                     textAlign: TextAlign.center,
-                    style: TextStyle(
+                    style: const TextStyle(
                       fontSize: 24,
                       fontWeight: FontWeight.bold,
                     ),
@@ -205,9 +232,9 @@ class _RegisterScreenState extends State<RegisterScreen> {
 
                   const SizedBox(height: 24),
 
-                  const Text(
-                    "Select Role",
-                    style: TextStyle(
+                  Text(
+                    l10n.selectRole,
+                    style: const TextStyle(
                       fontWeight: FontWeight.w600,
                       fontSize: 14,
                     ),
@@ -220,22 +247,22 @@ class _RegisterScreenState extends State<RegisterScreen> {
                       _buildRoleOption(
                         AppConstants.rolePatient,
                         Icons.person,
-                        "Access Health Records",
+                        l10n.accessHealthRecords,
                       ),
                       const SizedBox(width: 12),
                       _buildRoleOption(
                         AppConstants.roleDoctor,
                         Icons.medical_services,
-                        "Manage Patients",
+                        l10n.managePatients,
                       ),
                     ],
                   ),
 
                   const SizedBox(height: 20),
 
-                  const Text(
-                    "Full Name",
-                    style: TextStyle(
+                  Text(
+                    l10n.fullName,
+                    style: const TextStyle(
                       fontWeight: FontWeight.w600,
                       fontSize: 14,
                     ),
@@ -243,15 +270,15 @@ class _RegisterScreenState extends State<RegisterScreen> {
                   const SizedBox(height: 6),
                   CustomTextField(
                     controller: nameController,
-                    hintText: "Enter full name",
+                    hintText: l10n.enterFullName,
                     prefixIcon: Icons.person_outline,
                   ),
 
                   const SizedBox(height: 16),
 
-                  const Text(
-                    "Email Address",
-                    style: TextStyle(
+                  Text(
+                    l10n.emailAddress,
+                    style: const TextStyle(
                       fontWeight: FontWeight.w600,
                       fontSize: 14,
                     ),
@@ -259,16 +286,16 @@ class _RegisterScreenState extends State<RegisterScreen> {
                   const SizedBox(height: 6),
                   CustomTextField(
                     controller: emailController,
-                    hintText: "Enter email address",
+                    hintText: l10n.enterEmailAddress,
                     prefixIcon: Icons.email_outlined,
                     keyboardType: TextInputType.emailAddress,
                   ),
 
                   const SizedBox(height: 16),
 
-                  const Text(
-                    "Password",
-                    style: TextStyle(
+                  Text(
+                    l10n.password,
+                    style: const TextStyle(
                       fontWeight: FontWeight.w600,
                       fontSize: 14,
                     ),
@@ -276,7 +303,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
                   const SizedBox(height: 6),
                   CustomTextField(
                     controller: passwordController,
-                    hintText: "Create password (min 6 chars)",
+                    hintText: l10n.createPasswordHint,
                     prefixIcon: Icons.lock_outline,
                     obscureText: obscurePassword,
                     suffixIcon: IconButton(
@@ -295,9 +322,9 @@ class _RegisterScreenState extends State<RegisterScreen> {
 
                   const SizedBox(height: 16),
 
-                  const Text(
-                    "Confirm Password",
-                    style: TextStyle(
+                  Text(
+                    l10n.confirmPassword,
+                    style: const TextStyle(
                       fontWeight: FontWeight.w600,
                       fontSize: 14,
                     ),
@@ -305,7 +332,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
                   const SizedBox(height: 6),
                   CustomTextField(
                     controller: confirmPasswordController,
-                    hintText: "Re-enter password",
+                    hintText: l10n.reenterPasswordHint,
                     prefixIcon: Icons.lock_outline,
                     obscureText: obscureConfirmPassword,
                     suffixIcon: IconButton(
@@ -326,7 +353,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
                   const SizedBox(height: 24),
 
                   CustomButton(
-                    text: "Create Account",
+                    text: l10n.createAccount,
                     isLoading: isLoading,
                     onPressed: _handleRegister,
                   ),
@@ -337,7 +364,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
                     onPressed: () {
                       Navigator.pop(context);
                     },
-                    child: const Text("Already have an account? Login"),
+                    child: Text(l10n.alreadyHaveAccount),
                   ),
                 ],
               ),
@@ -347,4 +374,4 @@ class _RegisterScreenState extends State<RegisterScreen> {
       ),
     );
   }
-}
+}

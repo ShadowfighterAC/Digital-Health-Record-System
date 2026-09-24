@@ -1,6 +1,7 @@
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 
+import '../../l10n/app_localizations.dart';
 import '../../models/user_model.dart';
 import '../../services/firestore_service.dart';
 
@@ -66,6 +67,7 @@ class _ChooseDoctorScreenState extends State<ChooseDoctorScreen> {
       return;
     }
 
+    final l10n = context.l10n;
     final isChangingDoctor =
         _currentDoctorId != null && _currentDoctorId != doctor.uid;
 
@@ -74,18 +76,16 @@ class _ChooseDoctorScreenState extends State<ChooseDoctorScreen> {
         context: context,
         builder: (context) {
           return AlertDialog(
-            title: const Text('Change Doctor?'),
-            content: const Text(
-              'Changing your doctor will change which doctor can access your EHR.',
-            ),
+            title: Text(l10n.changeDoctorPrompt),
+            content: Text(l10n.changeDoctorWarning),
             actions: [
               TextButton(
                 onPressed: () => Navigator.pop(context, false),
-                child: const Text('Cancel'),
+                child: Text(l10n.cancel),
               ),
               ElevatedButton(
                 onPressed: () => Navigator.pop(context, true),
-                child: const Text('Change'),
+                child: Text(l10n.change),
               ),
             ],
           );
@@ -136,9 +136,11 @@ class _ChooseDoctorScreenState extends State<ChooseDoctorScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = context.l10n;
+
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Choose Doctor'),
+        title: Text(l10n.chooseDoctor),
       ),
       body: _loadingCurrentDoctor
           ? const Center(
@@ -150,7 +152,7 @@ class _ChooseDoctorScreenState extends State<ChooseDoctorScreen> {
                 if (snapshot.hasError) {
                   return Center(
                     child: Text(
-                      'Failed to load doctors.\n${snapshot.error}',
+                      '${l10n.failedToLoadDoctors}\n${snapshot.error}',
                       textAlign: TextAlign.center,
                     ),
                   );
@@ -165,9 +167,9 @@ class _ChooseDoctorScreenState extends State<ChooseDoctorScreen> {
                 final doctors = snapshot.data ?? [];
 
                 if (doctors.isEmpty) {
-                  return const Center(
+                  return Center(
                     child: Text(
-                      'No doctors are currently registered.',
+                      l10n.noDoctorsRegistered,
                       textAlign: TextAlign.center,
                     ),
                   );
@@ -195,7 +197,7 @@ class _ChooseDoctorScreenState extends State<ChooseDoctorScreen> {
                             title: Text(
                               doctor.name.isNotEmpty
                                   ? doctor.name
-                                  : 'Doctor',
+                                  : l10n.doctor,
                             ),
                             subtitle: Text(doctor.email),
                             trailing: isSelected
@@ -209,8 +211,8 @@ class _ChooseDoctorScreenState extends State<ChooseDoctorScreen> {
                                         : () => _selectDoctor(doctor),
                                     child: Text(
                                       _currentDoctorId == null
-                                          ? 'Select'
-                                          : 'Change',
+                                          ? l10n.select
+                                          : l10n.change,
                                     ),
                                   ),
                           ),
@@ -232,4 +234,4 @@ class _ChooseDoctorScreenState extends State<ChooseDoctorScreen> {
             ),
     );
   }
-}
+}

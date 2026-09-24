@@ -1,6 +1,7 @@
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 
+import '../../l10n/app_localizations.dart';
 import '../../models/patient_model.dart';
 import '../../services/firestore_service.dart';
 
@@ -45,20 +46,20 @@ class _PatientListScreenState extends State<PatientListScreen> {
     return widget.mode;
   }
 
-  String get _appBarTitle {
+  String _getAppBarTitle(AppLocalizations l10n) {
     switch (_effectiveMode) {
       case PatientListMode.addAppointment:
-        return "Select Patient (Appointment)";
+        return l10n.selectPatientAppointment;
       case PatientListMode.addMedicalRecord:
-        return "Select Patient (Medical Record)";
+        return l10n.selectPatientRecord;
       case PatientListMode.addMedicalHistory:
-        return "Select Patient (Medical History)";
+        return l10n.selectPatientHistory;
       case PatientListMode.addPrescription:
-        return "Select Patient (Prescription)";
+        return l10n.selectPatientPrescription;
       case PatientListMode.addLabReport:
-        return "Select Patient (Lab Report)";
+        return l10n.selectPatientLab;
       case PatientListMode.viewDetails:
-        return "Patients Directory";
+        return l10n.patientsDirectory;
     }
   }
 
@@ -137,12 +138,13 @@ class _PatientListScreenState extends State<PatientListScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = context.l10n;
     final doctorId = FirebaseAuth.instance.currentUser?.uid;
 
     return Scaffold(
       backgroundColor: const Color(0xFFF5F7FA),
       appBar: AppBar(
-        title: Text(_appBarTitle),
+        title: Text(_getAppBarTitle(l10n)),
         centerTitle: true,
       ),
       body: Column(
@@ -151,7 +153,7 @@ class _PatientListScreenState extends State<PatientListScreen> {
             padding: const EdgeInsets.all(16),
             child: TextField(
               decoration: InputDecoration(
-                hintText: "Search patients by name or email...",
+                hintText: l10n.searchPatientsHint,
                 prefixIcon: const Icon(Icons.search),
                 filled: true,
                 fillColor: Colors.white,
@@ -170,9 +172,9 @@ class _PatientListScreenState extends State<PatientListScreen> {
           ),
           Expanded(
             child: doctorId == null
-                ? const Center(
+                ? Center(
                     child: Text(
-                      "Please log in again to view your patients.",
+                      l10n.pleaseLogInPatients,
                       textAlign: TextAlign.center,
                     ),
                   )
@@ -199,16 +201,16 @@ class _PatientListScreenState extends State<PatientListScreen> {
                                   color: Colors.grey.shade400,
                                 ),
                                 const SizedBox(height: 16),
-                                const Text(
-                                  "No Patients Assigned",
-                                  style: TextStyle(
+                                Text(
+                                  l10n.noPatientsAssigned,
+                                  style: const TextStyle(
                                     fontSize: 20,
                                     fontWeight: FontWeight.bold,
                                   ),
                                 ),
                                 const SizedBox(height: 8),
                                 Text(
-                                  "Patients will appear here after they select you as their doctor.",
+                                  l10n.patientsAssignPrompt,
                                   textAlign: TextAlign.center,
                                   style: TextStyle(
                                     color: Colors.grey.shade600,
@@ -247,8 +249,8 @@ class _PatientListScreenState extends State<PatientListScreen> {
                               const SizedBox(height: 16),
                               Text(
                                 _searchQuery.isNotEmpty
-                                    ? "No Patients Found"
-                                    : "No Patients Assigned",
+                                    ? l10n.noPatientsFound
+                                    : l10n.noPatientsAssigned,
                                 style: const TextStyle(
                                   fontSize: 20,
                                   fontWeight: FontWeight.bold,
@@ -257,8 +259,8 @@ class _PatientListScreenState extends State<PatientListScreen> {
                               const SizedBox(height: 8),
                               Text(
                                 _searchQuery.isNotEmpty
-                                    ? "Try adjusting your search criteria."
-                                    : "Patients will appear here after they select you as their doctor.",
+                                    ? l10n.tryAdjustingSearch
+                                    : l10n.patientsAssignPrompt,
                                 textAlign: TextAlign.center,
                                 style: const TextStyle(
                                   color: Colors.grey,

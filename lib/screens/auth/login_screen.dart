@@ -1,7 +1,11 @@
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
 
+import '../../l10n/app_localizations.dart';
+import '../../providers/locale_provider.dart';
 import '../../widgets/custom_button.dart';
 import '../../widgets/custom_text_field.dart';
+import '../../widgets/language_selector_dialog.dart';
 import 'register_screen.dart';
 import '../../services/auth_service.dart';
 import '../../screens/patient/patient_dashboard.dart';
@@ -31,13 +35,14 @@ class _LoginScreenState extends State<LoginScreen> {
   }
 
   Future<void> _handleLogin() async {
+    final l10n = context.l10n;
     final email = emailController.text.trim();
     final password = passwordController.text.trim();
 
     if (email.isEmpty || password.isEmpty) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text("Please enter email and password"),
+        SnackBar(
+          content: Text(l10n.pleaseEnterEmailPassword),
           backgroundColor: Colors.orange,
         ),
       );
@@ -96,14 +101,32 @@ class _LoginScreenState extends State<LoginScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = context.l10n;
+    final localeProvider = Provider.of<LocaleProvider>(context);
+
     return Scaffold(
       backgroundColor: const Color(0xFFF5F7FA),
       body: SafeArea(
         child: SingleChildScrollView(
-          padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 30),
+          padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 20),
           child: Column(
             children: [
-              const SizedBox(height: 20),
+              // Top language switcher row
+              Align(
+                alignment: Alignment.topRight,
+                child: ActionChip(
+                  avatar: const Icon(Icons.language, size: 16, color: Colors.blue),
+                  label: Text(
+                    localeProvider.isMarathi ? "मराठी" : "English",
+                    style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 13),
+                  ),
+                  onPressed: () => showLanguageSelectorDialog(context),
+                  backgroundColor: Colors.white,
+                  side: BorderSide(color: Colors.blue.shade200),
+                ),
+              ),
+
+              const SizedBox(height: 10),
 
               const CircleAvatar(
                 radius: 45,
@@ -117,27 +140,27 @@ class _LoginScreenState extends State<LoginScreen> {
 
               const SizedBox(height: 25),
 
-              const Text(
-                "Digital Health Record System",
+              Text(
+                l10n.appTitle,
                 textAlign: TextAlign.center,
-                style: TextStyle(
-                  fontSize: 28,
+                style: const TextStyle(
+                  fontSize: 26,
                   fontWeight: FontWeight.bold,
                 ),
               ),
 
               const SizedBox(height: 8),
 
-              const Text(
-                "Manage your health records securely",
+              Text(
+                l10n.manageRecordsSecurely,
                 textAlign: TextAlign.center,
-                style: TextStyle(
+                style: const TextStyle(
                   color: Colors.grey,
-                  fontSize: 16,
+                  fontSize: 15,
                 ),
               ),
 
-              const SizedBox(height: 40),
+              const SizedBox(height: 35),
 
               Card(
                 elevation: 6,
@@ -149,9 +172,9 @@ class _LoginScreenState extends State<LoginScreen> {
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.stretch,
                     children: [
-                      const Text(
-                        "Email",
-                        style: TextStyle(
+                      Text(
+                        l10n.email,
+                        style: const TextStyle(
                           fontWeight: FontWeight.w600,
                         ),
                       ),
@@ -160,16 +183,16 @@ class _LoginScreenState extends State<LoginScreen> {
 
                       CustomTextField(
                         controller: emailController,
-                        hintText: "Enter your email",
+                        hintText: l10n.enterEmail,
                         prefixIcon: Icons.email_outlined,
                         keyboardType: TextInputType.emailAddress,
                       ),
 
                       const SizedBox(height: 20),
 
-                      const Text(
-                        "Password",
-                        style: TextStyle(
+                      Text(
+                        l10n.password,
+                        style: const TextStyle(
                           fontWeight: FontWeight.w600,
                         ),
                       ),
@@ -178,7 +201,7 @@ class _LoginScreenState extends State<LoginScreen> {
 
                       CustomTextField(
                         controller: passwordController,
-                        hintText: "Enter your password",
+                        hintText: l10n.enterPassword,
                         prefixIcon: Icons.lock_outline,
                         obscureText: obscurePassword,
                         suffixIcon: IconButton(
@@ -198,7 +221,7 @@ class _LoginScreenState extends State<LoginScreen> {
                       const SizedBox(height: 24),
 
                       CustomButton(
-                        text: "Login",
+                        text: l10n.login,
                         isLoading: isLoading,
                         onPressed: _handleLogin,
                       ),
@@ -212,7 +235,7 @@ class _LoginScreenState extends State<LoginScreen> {
               Row(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
-                  const Text("Don't have an account?"),
+                  Text(l10n.dontHaveAccount),
 
                   TextButton(
                     onPressed: () {
@@ -223,7 +246,7 @@ class _LoginScreenState extends State<LoginScreen> {
                         ),
                       );
                     },
-                    child: const Text("Register"),
+                    child: Text(l10n.register),
                   ),
                 ],
               ),

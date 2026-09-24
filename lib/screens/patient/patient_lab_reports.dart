@@ -1,7 +1,8 @@
-﻿import 'package:firebase_auth/firebase_auth.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 
+import '../../l10n/app_localizations.dart';
 import '../../models/lab_report_model.dart';
 import '../../services/lab_report_service.dart';
 import '../../widgets/attachment_view_widget.dart';
@@ -13,15 +14,16 @@ class PatientLabReports extends StatelessWidget {
   Widget build(BuildContext context) {
     final service = LabReportService();
     final uid = FirebaseAuth.instance.currentUser?.uid ?? "";
+    final l10n = context.l10n;
 
     return Scaffold(
       backgroundColor: const Color(0xFFF5F7FA),
       appBar: AppBar(
-        title: const Text("My Lab Reports"),
+        title: Text(l10n.labAndDiagnosticReports),
         centerTitle: true,
       ),
       body: uid.isEmpty
-          ? const Center(child: Text("Please sign in to view lab reports."))
+          ? Center(child: Text(l10n.pleaseSignInLab))
           : StreamBuilder<List<LabReportModel>>(
               stream: service.getPatientLabReports(uid),
               builder: (context, snapshot) {
@@ -34,7 +36,7 @@ class PatientLabReports extends StatelessWidget {
                     child: Padding(
                       padding: const EdgeInsets.all(20),
                       child: Text(
-                        "Unable to load lab reports: ${snapshot.error}",
+                        "${l10n.isMarathi ? 'लॅब अहवाल लोड करता आले नाहीत' : 'Unable to load lab reports'}: ${snapshot.error}",
                         style: const TextStyle(color: Colors.red),
                       ),
                     ),
@@ -54,17 +56,17 @@ class PatientLabReports extends StatelessWidget {
                           color: Colors.grey.shade400,
                         ),
                         const SizedBox(height: 20),
-                        const Text(
-                          "No Lab Reports Found",
-                          style: TextStyle(
+                        Text(
+                          l10n.noLabReportsFound,
+                          style: const TextStyle(
                             fontSize: 22,
                             fontWeight: FontWeight.bold,
                           ),
                         ),
                         const SizedBox(height: 8),
-                        const Text(
-                          "Diagnostic and laboratory reports will appear here.",
-                          style: TextStyle(color: Colors.grey),
+                        Text(
+                          l10n.labReportsAppearHere,
+                          style: const TextStyle(color: Colors.grey),
                         ),
                       ],
                     ),
@@ -137,9 +139,9 @@ class PatientLabReports extends StatelessWidget {
                               child: Column(
                                 crossAxisAlignment: CrossAxisAlignment.start,
                                 children: [
-                                  const Text(
-                                    "Result:",
-                                    style: TextStyle(
+                                  Text(
+                                    "${l10n.resultFinding}:",
+                                    style: const TextStyle(
                                       fontSize: 12,
                                       fontWeight: FontWeight.bold,
                                       color: Colors.black54,
@@ -157,7 +159,7 @@ class PatientLabReports extends StatelessWidget {
                                   if (report.referenceRange.isNotEmpty) ...[
                                     const SizedBox(height: 6),
                                     Text(
-                                      "Reference Range: ${report.referenceRange}",
+                                      "${l10n.referenceRangeNormal}: ${report.referenceRange}",
                                       style: TextStyle(
                                         fontSize: 12,
                                         color: Colors.grey.shade700,
@@ -171,7 +173,7 @@ class PatientLabReports extends StatelessWidget {
                             if (report.remarks.isNotEmpty) ...[
                               const SizedBox(height: 10),
                               Text(
-                                "Remarks: ${report.remarks}",
+                                "${l10n.doctorRemarksClinicalNotes}: ${report.remarks}",
                                 style: TextStyle(
                                   fontSize: 13,
                                   color: Colors.grey.shade800,
@@ -193,7 +195,7 @@ class PatientLabReports extends StatelessWidget {
                                     size: 14, color: Colors.grey),
                                 const SizedBox(width: 6),
                                 Text(
-                                  "Reported by: ${report.doctorName}",
+                                  l10n.reportedBy(report.doctorName),
                                   style: TextStyle(
                                     fontSize: 12,
                                     color: Colors.grey.shade600,

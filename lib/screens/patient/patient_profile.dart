@@ -1,7 +1,11 @@
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
 
+import '../../l10n/app_localizations.dart';
+import '../../providers/locale_provider.dart';
 import '../../services/firestore_service.dart';
+import '../../widgets/language_selector_dialog.dart';
 import '../../widgets/profile_tile.dart';
 import '../auth/login_screen.dart';
 
@@ -48,23 +52,24 @@ class _PatientProfileState extends State<PatientProfile> {
   }
 
   void _showEditNameDialog() {
+    final l10n = context.l10n;
     final nameController = TextEditingController(text: userData?["name"] ?? "");
     final messenger = ScaffoldMessenger.of(context);
     showDialog(
       context: context,
       builder: (ctx) => AlertDialog(
-        title: const Text("Edit Profile Name"),
+        title: Text(l10n.editProfileName),
         content: TextField(
           controller: nameController,
-          decoration: const InputDecoration(
-            labelText: "Full Name",
-            prefixIcon: Icon(Icons.person),
+          decoration: InputDecoration(
+            labelText: l10n.fullName,
+            prefixIcon: const Icon(Icons.person),
           ),
         ),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(ctx),
-            child: const Text("Cancel"),
+            child: Text(l10n.cancel),
           ),
           ElevatedButton(
             onPressed: () async {
@@ -76,11 +81,11 @@ class _PatientProfileState extends State<PatientProfile> {
                 Navigator.pop(ctx);
                 _loadUser();
                 messenger.showSnackBar(
-                  const SnackBar(content: Text("Name updated successfully")),
+                  SnackBar(content: Text(l10n.nameUpdatedSuccess)),
                 );
               }
             },
-            child: const Text("Save"),
+            child: Text(l10n.save),
           ),
         ],
       ),
@@ -88,20 +93,21 @@ class _PatientProfileState extends State<PatientProfile> {
   }
 
   Future<void> _logout() async {
+    final l10n = context.l10n;
     final confirm = await showDialog<bool>(
       context: context,
       builder: (ctx) => AlertDialog(
-        title: const Text("Confirm Logout"),
-        content: const Text("Are you sure you want to sign out?"),
+        title: Text(l10n.confirmLogout),
+        content: Text(l10n.confirmLogoutPrompt),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(ctx, false),
-            child: const Text("Cancel"),
+            child: Text(l10n.cancel),
           ),
           ElevatedButton(
             style: ElevatedButton.styleFrom(backgroundColor: Colors.red),
             onPressed: () => Navigator.pop(ctx, true),
-            child: const Text("Logout"),
+            child: Text(l10n.logout),
           ),
         ],
       ),
@@ -126,14 +132,17 @@ class _PatientProfileState extends State<PatientProfile> {
       );
     }
 
-    final name = userData?["name"] ?? "Patient";
+    final l10n = context.l10n;
+    final localeProvider = Provider.of<LocaleProvider>(context);
+    final name = userData?["name"] ?? l10n.patient;
     final email = userData?["email"] ?? "";
-    final role = userData?["role"] ?? "Patient";
+    final rawRole = userData?["role"] ?? "Patient";
+    final displayRole = l10n.translateRole(rawRole);
 
     return Scaffold(
       backgroundColor: const Color(0xFFF5F7FA),
       appBar: AppBar(
-        title: const Text("My Profile"),
+        title: Text(l10n.myProfile),
         centerTitle: true,
       ),
       body: SingleChildScrollView(
@@ -192,7 +201,7 @@ class _PatientProfileState extends State<PatientProfile> {
                             size: 16, color: Colors.green),
                         const SizedBox(width: 6),
                         Text(
-                          role,
+                          displayRole,
                           style: const TextStyle(
                             color: Colors.green,
                             fontWeight: FontWeight.bold,
@@ -210,7 +219,7 @@ class _PatientProfileState extends State<PatientProfile> {
 
             ProfileTile(
               icon: Icons.person_outline,
-              title: "Full Name",
+              title: l10n.fullName,
               value: name,
               trailing: IconButton(
                 icon: const Icon(Icons.edit_outlined, size: 20),
@@ -220,14 +229,22 @@ class _PatientProfileState extends State<PatientProfile> {
 
             ProfileTile(
               icon: Icons.email_outlined,
-              title: "Email Address",
+              title: l10n.emailAddress,
               value: email,
             ),
 
             ProfileTile(
               icon: Icons.badge_outlined,
-              title: "Role",
-              value: role,
+              title: l10n.role,
+              value: displayRole,
+            ),
+
+            ProfileTile(
+              icon: Icons.language,
+              title: l10n.language,
+              value: localeProvider.isMarathi ? "मराठी (Marathi)" : "English",
+              trailing: const Icon(Icons.arrow_forward_ios, size: 16),
+              onTap: () => showLanguageSelectorDialog(context),
             ),
 
             const SizedBox(height: 20),
@@ -245,9 +262,9 @@ class _PatientProfileState extends State<PatientProfile> {
                 ),
                 onPressed: _logout,
                 icon: const Icon(Icons.logout),
-                label: const Text(
-                  "Logout",
-                  style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+                label: Text(
+                  l10n.logout,
+                  style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
                 ),
               ),
             ),

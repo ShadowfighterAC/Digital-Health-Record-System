@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:url_launcher/url_launcher.dart';
 
+import '../l10n/app_localizations.dart';
 import '../models/attachment_model.dart';
 import '../services/storage_service.dart';
 
@@ -57,12 +58,12 @@ Future<String> _resolveAttachmentUrl(AttachmentModel attachment) async {
 
 class AttachmentViewWidget extends StatelessWidget {
   final List<AttachmentModel> attachments;
-  final String title;
+  final String? title;
 
   const AttachmentViewWidget({
     super.key,
     required this.attachments,
-    this.title = "Attachments",
+    this.title,
   });
 
   void _openImageViewer(BuildContext context, AttachmentModel attachment) {
@@ -74,12 +75,13 @@ class AttachmentViewWidget extends StatelessWidget {
   }
 
   Future<void> _openPdf(BuildContext context, AttachmentModel attachment) async {
+    final l10n = context.l10n;
     ScaffoldMessenger.of(context).hideCurrentSnackBar();
     ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(
+      SnackBar(
         content: Row(
           children: [
-            SizedBox(
+            const SizedBox(
               width: 16,
               height: 16,
               child: CircularProgressIndicator(
@@ -87,11 +89,11 @@ class AttachmentViewWidget extends StatelessWidget {
                 color: Colors.white,
               ),
             ),
-            SizedBox(width: 12),
-            Text("Opening PDF..."),
+            const SizedBox(width: 12),
+            Text(l10n.openingPdf),
           ],
         ),
-        duration: Duration(seconds: 2),
+        duration: const Duration(seconds: 2),
       ),
     );
 
@@ -107,9 +109,8 @@ class AttachmentViewWidget extends StatelessWidget {
       if (!launched && context.mounted) {
         ScaffoldMessenger.of(context).hideCurrentSnackBar();
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
-            content:
-                Text("Could not launch external PDF viewer on this device."),
+          SnackBar(
+            content: Text(l10n.couldNotLaunchPdf),
             backgroundColor: Colors.red,
           ),
         );
@@ -120,7 +121,7 @@ class AttachmentViewWidget extends StatelessWidget {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
             content: Text(
-              "Error opening PDF: ${e.toString().replaceAll("Exception: ", "")}",
+              "${l10n.isMarathi ? 'पीडीएफ उघडताना त्रुटी' : 'Error opening PDF'}: ${e.toString().replaceAll("Exception: ", "")}",
             ),
             backgroundColor: Colors.red,
           ),
@@ -147,6 +148,9 @@ class AttachmentViewWidget extends StatelessWidget {
     final images = attachments.where((a) => a.isImage).toList();
     final pdfs = attachments.where((a) => a.isPdf).toList();
 
+    final l10n = context.l10n;
+    final effectiveTitle = title ?? l10n.documentAttachments;
+
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -156,7 +160,7 @@ class AttachmentViewWidget extends StatelessWidget {
             const Icon(Icons.attach_file, size: 16, color: Colors.blue),
             const SizedBox(width: 6),
             Text(
-              "$title (${attachments.length})",
+              "$effectiveTitle (${attachments.length})",
               style: const TextStyle(
                 fontSize: 13,
                 fontWeight: FontWeight.bold,
@@ -240,9 +244,9 @@ class AttachmentViewWidget extends StatelessWidget {
                         foregroundColor: Colors.red.shade800,
                       ),
                       icon: const Icon(Icons.open_in_new, size: 14),
-                      label: const Text(
-                        "Open PDF",
-                        style: TextStyle(
+                      label: Text(
+                        l10n.openPdf,
+                        style: const TextStyle(
                             fontSize: 12, fontWeight: FontWeight.bold),
                       ),
                       onPressed: () => _openPdf(context, pdf),
@@ -505,18 +509,20 @@ class _ImageViewerDialogState extends State<_ImageViewerDialog> {
   }
 
   Widget _buildViewerContent() {
+    final l10n = context.l10n;
+
     if (_isLoading) {
-      return const SizedBox(
+      return SizedBox(
         height: 250,
         child: Center(
           child: Column(
             mainAxisSize: MainAxisSize.min,
             children: [
-              CircularProgressIndicator(color: Colors.white),
-              SizedBox(height: 16),
+              const CircularProgressIndicator(color: Colors.white),
+              const SizedBox(height: 16),
               Text(
-                "Loading secure image...",
-                style: TextStyle(color: Colors.white70, fontSize: 13),
+                l10n.loadingSecureImage,
+                style: const TextStyle(color: Colors.white70, fontSize: 13),
               ),
             ],
           ),
@@ -532,9 +538,9 @@ class _ImageViewerDialogState extends State<_ImageViewerDialog> {
           children: [
             const Icon(Icons.error_outline, color: Colors.redAccent, size: 48),
             const SizedBox(height: 12),
-            const Text(
-              "Failed to load image",
-              style: TextStyle(
+            Text(
+              l10n.failedToLoadImage,
+              style: const TextStyle(
                 color: Colors.white,
                 fontWeight: FontWeight.bold,
                 fontSize: 16,
@@ -542,7 +548,7 @@ class _ImageViewerDialogState extends State<_ImageViewerDialog> {
             ),
             const SizedBox(height: 6),
             Text(
-              _errorMessage ?? "Could not generate a valid access URL.",
+              _errorMessage ?? (l10n.isMarathi ? "वैध प्रवेश URL तयार करता आले नाही." : "Could not generate a valid access URL."),
               textAlign: TextAlign.center,
               style: const TextStyle(color: Colors.white70, fontSize: 13),
             ),
@@ -554,7 +560,7 @@ class _ImageViewerDialogState extends State<_ImageViewerDialog> {
               ),
               onPressed: _loadUrl,
               icon: const Icon(Icons.refresh, size: 16),
-              label: const Text("Retry"),
+              label: Text(l10n.retry),
             ),
           ],
         ),
@@ -580,10 +586,10 @@ class _ImageViewerDialogState extends State<_ImageViewerDialog> {
           return Container(
             height: 200,
             padding: const EdgeInsets.all(16),
-            child: const Center(
+            child: Center(
               child: Text(
-                "Failed to render image content",
-                style: TextStyle(color: Colors.white70),
+                l10n.failedToRenderImage,
+                style: const TextStyle(color: Colors.white70),
               ),
             ),
           );

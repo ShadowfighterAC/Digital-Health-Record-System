@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 
+import '../../l10n/app_localizations.dart';
 import '../../models/appointment_model.dart';
 import '../../services/appointment_service.dart';
 import '../../utils/app_constants.dart';
@@ -44,12 +45,13 @@ class _DoctorAppointmentsScreenState extends State<DoctorAppointmentsScreen>
   }
 
   void _showStatusDialog(BuildContext context, AppointmentModel appt) {
+    final l10n = context.l10n;
     final messenger = ScaffoldMessenger.of(context);
 
     showDialog(
       context: context,
       builder: (ctx) => AlertDialog(
-        title: const Text("Update Appointment Status"),
+        title: Text(l10n.updateAppointmentStatus),
         content: Column(
           mainAxisSize: MainAxisSize.min,
           children: AppConstants.appointmentStatuses.map((st) {
@@ -60,7 +62,7 @@ class _DoctorAppointmentsScreenState extends State<DoctorAppointmentsScreen>
                     : Icons.radio_button_off,
                 color: _getStatusColor(st),
               ),
-              title: Text(st),
+              title: Text(l10n.translateStatus(st)),
               onTap: () async {
                 Navigator.pop(ctx);
 
@@ -69,16 +71,14 @@ class _DoctorAppointmentsScreenState extends State<DoctorAppointmentsScreen>
 
                   messenger.showSnackBar(
                     SnackBar(
-                      content: Text("Appointment marked as $st"),
+                      content: Text(l10n.appointmentMarked(st)),
                       backgroundColor: _getStatusColor(st),
                     ),
                   );
                 } catch (e) {
                   messenger.showSnackBar(
-                    const SnackBar(
-                      content: Text(
-                        "Unable to update appointment status.",
-                      ),
+                    SnackBar(
+                      content: Text(l10n.unableToUpdateStatus),
                     ),
                   );
                 }
@@ -89,7 +89,7 @@ class _DoctorAppointmentsScreenState extends State<DoctorAppointmentsScreen>
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(ctx),
-            child: const Text("Close"),
+            child: Text(l10n.close),
           ),
         ],
       ),
@@ -97,19 +97,18 @@ class _DoctorAppointmentsScreenState extends State<DoctorAppointmentsScreen>
   }
 
   void _confirmDelete(BuildContext context, String id) {
+    final l10n = context.l10n;
     final messenger = ScaffoldMessenger.of(context);
 
     showDialog(
       context: context,
       builder: (ctx) => AlertDialog(
-        title: const Text("Delete Appointment"),
-        content: const Text(
-          "Are you sure you want to delete this appointment?",
-        ),
+        title: Text(l10n.deleteAppointment),
+        content: Text(l10n.deleteAppointmentPrompt),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(ctx),
-            child: const Text("Cancel"),
+            child: Text(l10n.cancel),
           ),
           ElevatedButton(
             style: ElevatedButton.styleFrom(
@@ -122,21 +121,19 @@ class _DoctorAppointmentsScreenState extends State<DoctorAppointmentsScreen>
                 await _service.deleteAppointment(id);
 
                 messenger.showSnackBar(
-                  const SnackBar(
-                    content: Text("Appointment deleted"),
+                  SnackBar(
+                    content: Text(l10n.appointmentDeleted),
                   ),
                 );
               } catch (e) {
                 messenger.showSnackBar(
-                  const SnackBar(
-                    content: Text(
-                      "Unable to delete appointment.",
-                    ),
+                  SnackBar(
+                    content: Text(l10n.unableToDeleteAppointment),
                   ),
                 );
               }
             },
-            child: const Text("Delete"),
+            child: Text(l10n.delete),
           ),
         ],
       ),

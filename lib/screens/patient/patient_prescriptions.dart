@@ -2,6 +2,7 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 
+import '../../l10n/app_localizations.dart';
 import '../../models/prescription_model.dart';
 import '../../services/prescription_service.dart';
 
@@ -12,11 +13,12 @@ class PatientPrescriptions extends StatelessWidget {
   Widget build(BuildContext context) {
     final service = PrescriptionService();
     final uid = FirebaseAuth.instance.currentUser?.uid ?? "";
+    final l10n = context.l10n;
 
     return Scaffold(
       backgroundColor: const Color(0xFFF5F7FA),
       appBar: AppBar(
-        title: const Text("My Prescriptions"),
+        title: Text(l10n.prescriptionsAndMedicines),
         centerTitle: true,
       ),
       body: StreamBuilder<List<PrescriptionModel>>(
@@ -31,7 +33,7 @@ class PatientPrescriptions extends StatelessWidget {
               child: Padding(
                 padding: const EdgeInsets.all(20),
                 child: Text(
-                  "Unable to load prescriptions: ${snapshot.error}",
+                  "${l10n.isMarathi ? 'प्रिस्क्रिप्शन लोड करता आले नाही' : 'Unable to load prescriptions'}: ${snapshot.error}",
                   style: const TextStyle(color: Colors.red),
                 ),
               ),
@@ -51,17 +53,17 @@ class PatientPrescriptions extends StatelessWidget {
                     color: Colors.grey.shade400,
                   ),
                   const SizedBox(height: 20),
-                  const Text(
-                    "No Prescriptions Found",
-                    style: TextStyle(
+                  Text(
+                    l10n.noPrescriptionsFound,
+                    style: const TextStyle(
                       fontSize: 22,
                       fontWeight: FontWeight.bold,
                     ),
                   ),
                   const SizedBox(height: 8),
-                  const Text(
-                    "Your prescribed medicines will appear here.",
-                    style: TextStyle(color: Colors.grey),
+                  Text(
+                    l10n.prescriptionsAppearHere,
+                    style: const TextStyle(color: Colors.grey),
                   ),
                 ],
               ),
@@ -117,7 +119,7 @@ class PatientPrescriptions extends StatelessWidget {
                               borderRadius: BorderRadius.circular(12),
                             ),
                             child: Text(
-                              "${rx.medicines.length} item(s)",
+                              l10n.itemsCount(rx.medicines.length),
                               style: const TextStyle(
                                 fontSize: 12,
                                 color: Colors.blue,
@@ -136,7 +138,7 @@ class PatientPrescriptions extends StatelessWidget {
                               size: 16, color: Colors.grey),
                           const SizedBox(width: 6),
                           Text(
-                            "Prescribed by ${rx.doctorName}",
+                            l10n.prescribedBy(rx.doctorName),
                             style: TextStyle(
                               fontSize: 13,
                               color: Colors.grey.shade700,
@@ -147,9 +149,9 @@ class PatientPrescriptions extends StatelessWidget {
 
                       const Divider(height: 20),
 
-                      const Text(
-                        "Medicines:",
-                        style: TextStyle(
+                      Text(
+                        "${l10n.prescribedMedicines}:",
+                        style: const TextStyle(
                           fontWeight: FontWeight.bold,
                           fontSize: 14,
                         ),
@@ -182,7 +184,7 @@ class PatientPrescriptions extends StatelessWidget {
                                   children: [
                                     Expanded(
                                       child: Text(
-                                        "Dosage: ${med.dosage}",
+                                        "${l10n.dosage}: ${med.dosage}",
                                         style: TextStyle(
                                           fontSize: 12,
                                           color: Colors.grey.shade700,
@@ -191,7 +193,7 @@ class PatientPrescriptions extends StatelessWidget {
                                     ),
                                     Expanded(
                                       child: Text(
-                                        "Duration: ${med.duration}",
+                                        "${l10n.duration}: ${med.duration}",
                                         style: TextStyle(
                                           fontSize: 12,
                                           color: Colors.grey.shade700,
@@ -202,7 +204,7 @@ class PatientPrescriptions extends StatelessWidget {
                                 ),
                                 const SizedBox(height: 2),
                                 Text(
-                                  "Frequency: ${med.frequency}",
+                                  "${l10n.frequency}: ${l10n.translateFrequency(med.frequency)}",
                                   style: TextStyle(
                                     fontSize: 12,
                                     color: Colors.grey.shade700,
@@ -211,7 +213,7 @@ class PatientPrescriptions extends StatelessWidget {
                                 if (med.instructions.isNotEmpty) ...[
                                   const SizedBox(height: 4),
                                   Text(
-                                    "Instructions: ${med.instructions}",
+                                    "${l10n.isMarathi ? 'सूचना' : 'Instructions'}: ${med.instructions}",
                                     style: TextStyle(
                                       fontSize: 12,
                                       fontStyle: FontStyle.italic,
@@ -235,7 +237,7 @@ class PatientPrescriptions extends StatelessWidget {
                             borderRadius: BorderRadius.circular(10),
                           ),
                           child: Text(
-                            "Doctor's Note: ${rx.notes}",
+                            "${l10n.isMarathi ? 'डॉक्टरांचा शेरा' : "Doctor's Note"}: ${rx.notes}",
                             style: TextStyle(
                               fontSize: 12,
                               color: Colors.amber.shade900,

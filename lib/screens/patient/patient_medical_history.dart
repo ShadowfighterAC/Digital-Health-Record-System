@@ -1,7 +1,8 @@
-﻿import 'package:firebase_auth/firebase_auth.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 
+import '../../l10n/app_localizations.dart';
 import '../../models/medical_history_model.dart';
 import '../../services/medical_history_service.dart';
 import '../../widgets/attachment_view_widget.dart';
@@ -34,15 +35,16 @@ class PatientMedicalHistory extends StatelessWidget {
   Widget build(BuildContext context) {
     final uid = FirebaseAuth.instance.currentUser?.uid ?? "";
     final service = MedicalHistoryService();
+    final l10n = context.l10n;
 
     return Scaffold(
       backgroundColor: const Color(0xFFF5F7FA),
       appBar: AppBar(
-        title: const Text("My Medical History"),
+        title: Text(l10n.medicalHistory),
         centerTitle: true,
       ),
       body: uid.isEmpty
-          ? const Center(child: Text("Please sign in to view your medical history."))
+          ? Center(child: Text(l10n.pleaseSignInHistory))
           : StreamBuilder<List<MedicalHistoryModel>>(
               stream: service.getPatientHistory(uid),
               builder: (context, snapshot) {
@@ -55,7 +57,7 @@ class PatientMedicalHistory extends StatelessWidget {
                     child: Padding(
                       padding: const EdgeInsets.all(20),
                       child: Text(
-                        "Unable to load medical history: ${snapshot.error}",
+                        "${l10n.isMarathi ? 'वैद्यकीय इतिहास लोड करता आला नाही' : 'Unable to load medical history'}: ${snapshot.error}",
                         textAlign: TextAlign.center,
                         style: const TextStyle(color: Colors.red),
                       ),
@@ -76,18 +78,18 @@ class PatientMedicalHistory extends StatelessWidget {
                           color: Colors.grey.shade400,
                         ),
                         const SizedBox(height: 16),
-                        const Text(
-                          "No Medical History Recorded",
-                          style: TextStyle(
+                        Text(
+                          l10n.noMedicalHistoryRecorded,
+                          style: const TextStyle(
                             fontSize: 20,
                             fontWeight: FontWeight.bold,
                           ),
                         ),
                         const SizedBox(height: 8),
-                        const Text(
-                          "Your past diagnoses, surgeries, and allergies\nwill appear here once recorded by your doctor.",
+                        Text(
+                          l10n.medicalHistoryAppearHere,
                           textAlign: TextAlign.center,
-                          style: TextStyle(color: Colors.grey),
+                          style: const TextStyle(color: Colors.grey),
                         ),
                       ],
                     ),
@@ -128,7 +130,7 @@ class PatientMedicalHistory extends StatelessWidget {
                                     ),
                                   ),
                                   child: Text(
-                                    item.category,
+                                    l10n.translateCategory(item.category),
                                     style: TextStyle(
                                       color: catColor,
                                       fontWeight: FontWeight.bold,
@@ -174,7 +176,7 @@ class PatientMedicalHistory extends StatelessWidget {
                                   borderRadius: BorderRadius.circular(8),
                                 ),
                                 child: Text(
-                                  "Remarks: ${item.notes}",
+                                  "${l10n.isMarathi ? 'शेरा' : 'Remarks'}: ${item.notes}",
                                   style: TextStyle(
                                     fontSize: 13,
                                     fontStyle: FontStyle.italic,
@@ -198,7 +200,7 @@ class PatientMedicalHistory extends StatelessWidget {
                                 ),
                                 const SizedBox(width: 4),
                                 Text(
-                                  "Recorded by: ${item.doctorName}",
+                                  l10n.recordedBy(item.doctorName),
                                   style: TextStyle(
                                     fontSize: 11,
                                     color: Colors.grey.shade600,

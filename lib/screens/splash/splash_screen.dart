@@ -2,6 +2,7 @@ import 'dart:async';
 
 import 'package:flutter/material.dart';
 
+import '../../l10n/app_localizations.dart';
 import '../auth/login_screen.dart';
 
 class SplashScreen extends StatefulWidget {
@@ -32,6 +33,8 @@ class _SplashScreenState extends State<SplashScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = context.l10n;
+
     return Scaffold(
       body: Center(
         child: Column(
@@ -47,14 +50,16 @@ class _SplashScreenState extends State<SplashScreen> {
             const SizedBox(height: 20),
 
             Text(
-              "Digital Health Record System",
+              l10n.appTitle,
+              textAlign: TextAlign.center,
               style: Theme.of(context).textTheme.headlineMedium,
             ),
 
             const SizedBox(height: 10),
 
             Text(
-              "Secure Medical Records",
+              l10n.secureMedicalRecords,
+              textAlign: TextAlign.center,
               style: Theme.of(context).textTheme.bodyLarge,
             ),
 

@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:path/path.dart' as p;
 import 'package:path_provider/path_provider.dart';
+import '../l10n/app_localizations.dart';
 import '../services/storage_service.dart';
 
 // ─────────────────────────────────────────────────────────────────────────────
@@ -83,7 +84,7 @@ class _AttachmentPickerWidgetState extends State<AttachmentPickerWidget> {
     );
   }
 
-  /// Copy [src] to the app''s temporary directory so we hold a stable reference
+  /// Copy [src] to the app's temporary directory so we hold a stable reference
   /// that cannot be cleared by the OS or the picker framework.
   ///
   /// Returns the cached [File] or throws on failure.
@@ -137,6 +138,7 @@ class _AttachmentPickerWidgetState extends State<AttachmentPickerWidget> {
   }
 
   Future<void> _showImageSourceDialog() async {
+    final l10n = context.l10n;
     showModalBottomSheet(
       context: context,
       shape: const RoundedRectangleBorder(
@@ -148,9 +150,9 @@ class _AttachmentPickerWidgetState extends State<AttachmentPickerWidget> {
           child: Column(
             mainAxisSize: MainAxisSize.min,
             children: [
-              const Text(
-                'Attach Photo',
-                style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+              Text(
+                l10n.attachPhoto,
+                style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
               ),
               const SizedBox(height: 12),
               ListTile(
@@ -158,7 +160,7 @@ class _AttachmentPickerWidgetState extends State<AttachmentPickerWidget> {
                   backgroundColor: Colors.blue,
                   child: Icon(Icons.camera_alt, color: Colors.white),
                 ),
-                title: const Text('Take Photo (Camera)'),
+                title: Text(l10n.takePhotoCamera),
                 onTap: () {
                   Navigator.pop(ctx);
                   _pickImage(ImageSource.camera);
@@ -169,7 +171,7 @@ class _AttachmentPickerWidgetState extends State<AttachmentPickerWidget> {
                   backgroundColor: Colors.purple,
                   child: Icon(Icons.photo_library, color: Colors.white),
                 ),
-                title: const Text('Choose from Gallery'),
+                title: Text(l10n.chooseFromGallery),
                 onTap: () {
                   Navigator.pop(ctx);
                   _pickImage(ImageSource.gallery);
@@ -185,6 +187,7 @@ class _AttachmentPickerWidgetState extends State<AttachmentPickerWidget> {
   // ── PDF picking ───────────────────────────────────────────────────────────
 
   Future<void> _pickPdf() async {
+    final l10n = context.l10n;
     try {
       final result = await FilePicker.platform.pickFiles(
         type: FileType.custom,
@@ -196,7 +199,7 @@ class _AttachmentPickerWidgetState extends State<AttachmentPickerWidget> {
 
       final pickedFile = result.files.first;
       if (pickedFile.path == null) {
-        _showError('Unable to access the selected PDF.');
+        _showError(l10n.unableToAccessPdf);
         return;
       }
 
@@ -242,6 +245,8 @@ class _AttachmentPickerWidgetState extends State<AttachmentPickerWidget> {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = context.l10n;
+
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -249,9 +254,9 @@ class _AttachmentPickerWidgetState extends State<AttachmentPickerWidget> {
         Row(
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: [
-            const Text(
-              'Document Attachments',
-              style: TextStyle(
+            Text(
+              l10n.documentAttachments,
+              style: const TextStyle(
                 fontSize: 16,
                 fontWeight: FontWeight.bold,
                 color: Colors.black87,
@@ -266,7 +271,7 @@ class _AttachmentPickerWidgetState extends State<AttachmentPickerWidget> {
                   borderRadius: BorderRadius.circular(10),
                 ),
                 child: Text(
-                  '${_attachments.length} attached',
+                  l10n.attachedCount(_attachments.length),
                   style: TextStyle(
                     fontSize: 12,
                     fontWeight: FontWeight.bold,
@@ -284,7 +289,7 @@ class _AttachmentPickerWidgetState extends State<AttachmentPickerWidget> {
             Expanded(
               child: OutlinedButton.icon(
                 icon: const Icon(Icons.add_a_photo, size: 18),
-                label: const Text('Photo (≤10MB)'),
+                label: Text(l10n.photoLimit),
                 style: OutlinedButton.styleFrom(
                   padding: const EdgeInsets.symmetric(vertical: 12),
                   shape: RoundedRectangleBorder(
@@ -299,7 +304,7 @@ class _AttachmentPickerWidgetState extends State<AttachmentPickerWidget> {
             Expanded(
               child: OutlinedButton.icon(
                 icon: const Icon(Icons.picture_as_pdf, size: 18),
-                label: const Text('PDF (≤20MB)'),
+                label: Text(l10n.pdfLimit),
                 style: OutlinedButton.styleFrom(
                   padding: const EdgeInsets.symmetric(vertical: 12),
                   shape: RoundedRectangleBorder(
@@ -373,7 +378,7 @@ class _AttachmentPickerWidgetState extends State<AttachmentPickerWidget> {
                   ),
                   trailing: IconButton(
                     icon: const Icon(Icons.close, color: Colors.red),
-                    tooltip: 'Remove attachment',
+                    tooltip: l10n.removeAttachment,
                     onPressed: () => _removeAttachment(index),
                   ),
                 ),

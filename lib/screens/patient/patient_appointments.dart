@@ -2,6 +2,7 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 
+import '../../l10n/app_localizations.dart';
 import '../../models/appointment_model.dart';
 import '../../services/appointment_service.dart';
 import '../../utils/app_constants.dart';
@@ -29,6 +30,7 @@ class _PatientAppointmentsState extends State<PatientAppointments> {
   }
 
   Future<void> _bookAppointment() async {
+    final l10n = context.l10n;
     DateTime? selectedDate;
     TimeOfDay? selectedTime;
     String appointmentTime = "";
@@ -40,7 +42,7 @@ class _PatientAppointmentsState extends State<PatientAppointments> {
         return StatefulBuilder(
           builder: (context, setDialogState) {
             return AlertDialog(
-              title: const Text("Book Appointment"),
+              title: Text(l10n.bookAppointment),
               content: SingleChildScrollView(
                 child: Column(
                   mainAxisSize: MainAxisSize.min,
@@ -51,10 +53,10 @@ class _PatientAppointmentsState extends State<PatientAppointments> {
                         Icons.calendar_today,
                         color: Colors.blue,
                       ),
-                      title: const Text("Appointment Date"),
+                      title: Text(l10n.appointmentDate),
                       subtitle: Text(
                         selectedDate == null
-                            ? "Select a date"
+                            ? l10n.selectDate
                             : DateFormat("dd MMM yyyy")
                                 .format(selectedDate!),
                       ),
@@ -86,10 +88,10 @@ class _PatientAppointmentsState extends State<PatientAppointments> {
                         Icons.access_time,
                         color: Colors.blue,
                       ),
-                      title: const Text("Appointment Time"),
+                      title: Text(l10n.appointmentTime),
                       subtitle: Text(
                         selectedTime == null
-                            ? "Select a time"
+                            ? l10n.selectTime
                             : appointmentTime,
                       ),
                       onTap: () async {
@@ -112,9 +114,8 @@ class _PatientAppointmentsState extends State<PatientAppointments> {
                       controller: reasonController,
                       maxLines: 3,
                       decoration: InputDecoration(
-                        labelText: "Reason for Visit",
-                        hintText:
-                            "Enter the reason for your appointment",
+                        labelText: l10n.reasonForVisit,
+                        hintText: l10n.enterReasonHint,
                         border: OutlineInputBorder(
                           borderRadius: BorderRadius.circular(12),
                         ),
@@ -126,7 +127,7 @@ class _PatientAppointmentsState extends State<PatientAppointments> {
               actions: [
                 TextButton(
                   onPressed: () => Navigator.pop(dialogContext, false),
-                  child: const Text("Cancel"),
+                  child: Text(l10n.cancel),
                 ),
                 ElevatedButton(
                   onPressed: () {
@@ -134,10 +135,8 @@ class _PatientAppointmentsState extends State<PatientAppointments> {
                         selectedTime == null ||
                         reasonController.text.trim().isEmpty) {
                       ScaffoldMessenger.of(dialogContext).showSnackBar(
-                        const SnackBar(
-                          content: Text(
-                            "Please select a date, time and enter a reason.",
-                          ),
+                        SnackBar(
+                          content: Text(l10n.pleaseFillDateTimeReason),
                         ),
                       );
                       return;
@@ -145,7 +144,7 @@ class _PatientAppointmentsState extends State<PatientAppointments> {
 
                     Navigator.pop(dialogContext, true);
                   },
-                  child: const Text("Book"),
+                  child: Text(l10n.isMarathi ? "बुक करा" : "Book"),
                 ),
               ],
             );
@@ -177,8 +176,8 @@ class _PatientAppointmentsState extends State<PatientAppointments> {
       if (!mounted) return;
 
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text("Appointment booked successfully"),
+        SnackBar(
+          content: Text(l10n.appointmentBookedSuccess),
           backgroundColor: Colors.green,
         ),
       );
@@ -187,7 +186,11 @@ class _PatientAppointmentsState extends State<PatientAppointments> {
 
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
-          content: Text("Unable to book appointment: $e"),
+          content: Text(
+            l10n.isMarathi
+                ? "अपॉइंटमेंट बुक करता आली नाही: $e"
+                : "Unable to book appointment: $e",
+          ),
           backgroundColor: Colors.red,
         ),
       );
@@ -197,17 +200,16 @@ class _PatientAppointmentsState extends State<PatientAppointments> {
   }
 
   void _cancelAppointment(String id) {
+    final l10n = context.l10n;
     showDialog(
       context: context,
       builder: (ctx) => AlertDialog(
-        title: const Text("Cancel Appointment"),
-        content: const Text(
-          "Are you sure you want to cancel this appointment?",
-        ),
+        title: Text(l10n.cancelAppointment),
+        content: Text(l10n.cancelAppointmentPrompt),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(ctx),
-            child: const Text("Keep Appointment"),
+            child: Text(l10n.keepAppointment),
           ),
           ElevatedButton(
             style: ElevatedButton.styleFrom(
@@ -224,8 +226,8 @@ class _PatientAppointmentsState extends State<PatientAppointments> {
 
                 if (mounted) {
                   ScaffoldMessenger.of(context).showSnackBar(
-                    const SnackBar(
-                      content: Text("Appointment cancelled"),
+                    SnackBar(
+                      content: Text(l10n.appointmentCancelled),
                       backgroundColor: Colors.red,
                     ),
                   );
@@ -235,7 +237,9 @@ class _PatientAppointmentsState extends State<PatientAppointments> {
                   ScaffoldMessenger.of(context).showSnackBar(
                     SnackBar(
                       content: Text(
-                        "Unable to cancel appointment: $e",
+                        l10n.isMarathi
+                            ? "अपॉइंटमेंट रद्द करता आली नाही: $e"
+                            : "Unable to cancel appointment: $e",
                       ),
                       backgroundColor: Colors.red,
                     ),
@@ -243,7 +247,7 @@ class _PatientAppointmentsState extends State<PatientAppointments> {
                 }
               }
             },
-            child: const Text("Cancel Appointment"),
+            child: Text(l10n.cancelAppointment),
           ),
         ],
       ),
@@ -253,11 +257,12 @@ class _PatientAppointmentsState extends State<PatientAppointments> {
   @override
   Widget build(BuildContext context) {
     final uid = FirebaseAuth.instance.currentUser?.uid ?? "";
+    final l10n = context.l10n;
 
     return Scaffold(
       backgroundColor: const Color(0xFFF5F7FA),
       appBar: AppBar(
-        title: const Text("My Appointments"),
+        title: Text(l10n.myAppointments),
         centerTitle: true,
       ),
       floatingActionButton: FloatingActionButton.extended(
@@ -265,7 +270,7 @@ class _PatientAppointmentsState extends State<PatientAppointments> {
         backgroundColor: Colors.blue,
         foregroundColor: Colors.white,
         icon: const Icon(Icons.add),
-        label: const Text("Book Appointment"),
+        label: Text(l10n.bookAppointment),
       ),
       body: StreamBuilder<List<AppointmentModel>>(
         stream: _service.getPatientAppointments(uid),
@@ -281,7 +286,7 @@ class _PatientAppointmentsState extends State<PatientAppointments> {
               child: Padding(
                 padding: const EdgeInsets.all(20),
                 child: Text(
-                  "Unable to load appointments.",
+                  l10n.unableToLoadAppointments,
                   textAlign: TextAlign.center,
                   style: const TextStyle(
                     color: Colors.red,
@@ -307,18 +312,18 @@ class _PatientAppointmentsState extends State<PatientAppointments> {
                       color: Colors.grey.shade400,
                     ),
                     const SizedBox(height: 20),
-                    const Text(
-                      "No Appointments Found",
-                      style: TextStyle(
+                    Text(
+                      l10n.noAppointmentsFound,
+                      style: const TextStyle(
                         fontSize: 22,
                         fontWeight: FontWeight.bold,
                       ),
                     ),
                     const SizedBox(height: 8),
-                    const Text(
-                      "Book an appointment with your assigned doctor.",
+                    Text(
+                      l10n.bookAppointmentWithDoctor,
                       textAlign: TextAlign.center,
-                      style: TextStyle(
+                      style: const TextStyle(
                         color: Colors.grey,
                       ),
                     ),
@@ -326,7 +331,7 @@ class _PatientAppointmentsState extends State<PatientAppointments> {
                     ElevatedButton.icon(
                       onPressed: _bookAppointment,
                       icon: const Icon(Icons.add),
-                      label: const Text("Book Appointment"),
+                      label: Text(l10n.bookAppointment),
                     ),
                   ],
                 ),
@@ -381,7 +386,7 @@ class _PatientAppointmentsState extends State<PatientAppointments> {
                               ),
                             ),
                             child: Text(
-                              appointment.status,
+                              l10n.translateStatus(appointment.status),
                               style: TextStyle(
                                 color: statusColor,
                                 fontWeight: FontWeight.bold,
@@ -402,7 +407,7 @@ class _PatientAppointmentsState extends State<PatientAppointments> {
                           const SizedBox(width: 8),
                           Expanded(
                             child: Text(
-                              "Doctor: ${appointment.doctorName}",
+                              l10n.doctorLabel(appointment.doctorName),
                               style: const TextStyle(
                                 fontWeight: FontWeight.w500,
                                 fontSize: 14,
@@ -456,14 +461,14 @@ class _PatientAppointmentsState extends State<PatientAppointments> {
                             ),
                             onPressed: () =>
                                 _cancelAppointment(
-                              appointment.id,
-                            ),
+                                appointment.id,
+                              ),
                             icon: const Icon(
                               Icons.cancel_outlined,
                               size: 16,
                             ),
-                            label: const Text(
-                              "Cancel Appointment",
+                            label: Text(
+                              l10n.cancelAppointment,
                             ),
                           ),
                         ),
